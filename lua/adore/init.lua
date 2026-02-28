@@ -32,6 +32,20 @@ M.open_bar = function()
           vim.fn.jobstart({ "http", "--ignore-stdin", "GET", url }, {
               stdout_buffered = true,
               on_stdout = function(_, data)
+                  local clean_data = {}
+                  if data then
+                    for _, lines in ipairs(data) do
+                      -- line:gsub("%s+", "") quita espacios. Si queda algo, es contenido real.
+                      if lines ~= "" and lines:gsub("%s+", "") ~= "" then
+                        table.insert(clean_data, line)
+                      end
+                    end
+                  end
+
+                  if #clean_data == 0 then
+                        print("AdoRest: Didnt receive any data.")
+                        return
+                  end
                     local res_buf = vim.api.nvim_create_buf(false, true)
                     -- Open a split at the bottom of the bar
                     vim.cmd("belowright split")
