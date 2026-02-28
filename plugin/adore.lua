@@ -3,7 +3,7 @@ function(opts)
     local internal = require("adore")
     -- first parameter if user writes "bar"
     if opts.args == "bar" then
-        internal.abrir_barra()
+        internal.open_bar()
     --if not then show the message
     else
         internal.world_domination()
@@ -13,5 +13,5 @@ end, {
 })
 
 vim.keymap.set('n', '<leader>ar', function()
-    require('adore').abrir_barra()
-end, { desc = 'Abrir barra lateral de AdoRest' })
+    require('adore').open_bar()
+end, { desc = 'Open AdoRest lateral bar' })

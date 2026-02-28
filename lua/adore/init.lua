@@ -5,7 +5,7 @@ M.world_domination = function()
     print("AdoRest: WORLD ADOMINATION!")
 end
 
-M.abrir_barra = function()
+M.open_bar = function()
     -- if the window already exist and is valid, we close it
     if win_id and vim.api.nvim_win_is_valid(win_id) then
         vim.api.nvim_win_close(win_id, true)
