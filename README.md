@@ -27,7 +27,7 @@ Using lazy.nvim:
   dependencies = { "rcarriga/nvim-notify" }, -- Optional, for pretty notifications
   config = function()
     -- Keybinding to toggle the AdoRest sidebar
-    vim.keymap.set('n', '<leader>ar', ':AdoRest<CR>', { silent = true })
+    vim.keymap.set('n', '<leader>ar', ':AdoRest bar<CR>', { silent = true })
   end
 }
 ```
