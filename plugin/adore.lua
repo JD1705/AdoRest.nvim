@@ -12,3 +12,6 @@ end, {
     nargs = "?" -- this makes the command to accept 0 or 1
 })
 
+vim.keymap.set('n', '<leader>ar', function()
+    require('adore').abrir_barra()
+end, { desc = 'Abrir barra lateral de AdoRest' })
