@@ -23,8 +23,7 @@ sudo pacman -S httpie
 Using lazy.nvim:
 ```Lua
 {
-  "tu-usuario/adore.nvim",
-  dependencies = { "rcarriga/nvim-notify" }, -- Optional, for pretty notifications
+  "JD1705/AdoRest.nvim",
   config = function()
     -- Keybinding to toggle the AdoRest sidebar
     vim.keymap.set('n', '<leader>ar', ':AdoRest bar<CR>', { silent = true })
