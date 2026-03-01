@@ -25,9 +25,8 @@ M.open_bar = function()
       -- Get the current line (cursor return {line, column})
       local line = vim.api.nvim_win_get_cursor(0)[1]
       local content = vim.api.nvim_buf_get_lines(buf, line - 1, line, false)[1]
-
+      local url = vim.api.nvim_buf_get_lines(buf, 0, 2, false)[2]
       if content:match("GET") then
-          local url = "http://127.0.0.1:8000/"
           print("AdoRest: Launching GET request...")
           vim.fn.jobstart({ "http", "--ignore-stdin", "GET", url }, {
               stdout_buffered = true,
@@ -84,7 +83,7 @@ M.open_bar = function()
     end, { buffer = buf, silent = true })
     -- buffer thats not a file
     vim.api.nvim_win_set_buf(win_id, buf)
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "  --- AdoRest ---  ", "", "  [ ] GET", "  [ ] POST" })
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "  --- AdoRest ---  ", "http://127.0.0.1:8000/","", "  [ ] GET", "  [ ] POST" })
 end
 
 return M
