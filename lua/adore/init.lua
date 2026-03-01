@@ -1,12 +1,76 @@
 local M = {}
 local win_id = nil
 
-M.world_domination = function()
-    print("AdoRest: WORLD ADOMINATION!")
+-- Function to make requests
+M.execute_request = function(method, url)
+    print("AdoRest: Launching " .. method .. " to " .. url .. "...")
+    vim.fn.jobstart({ "http", "--ignore-stdin", method, url }, {
+        stdout_buffered = true,
+        on_stdout = function(_, data)
+            local clean_data = {}
+            if data then
+                for _, line in ipairs(data) do
+                    if line ~= "" and line:gsub("%s+", "") ~= "" then
+                        table.insert(clean_data, line)
+                    end
+                end
+            end
+
+            if #clean_data == 0 then
+                print("AdoRest: Didn't receive any data.")
+                return
+            end
+
+            vim.schedule(function()
+                local res_buf = vim.api.nvim_create_buf(false, true)
+                vim.cmd("belowright split")
+                local res_win = vim.api.nvim_get_current_win()
+                vim.api.nvim_win_set_buf(res_win, res_buf)
+                vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, clean_data)
+                vim.api.nvim_set_option_value('filetype', 'json', { buf = res_buf })
+                vim.keymap.set('n', 'q', ':close<CR>', { buffer = res_buf, silent = true })
+                print("AdoRest: Success! JSON rendered.")
+            end)
+        end,
+        on_stderr = function(_, data)
+            if data and data[1] ~= "" then
+                print("Error from AdoRest: " .. table.concat(data, " "))
+            end
+        end,
+    })
+end
+
+local function handle_enter()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local curr_line = vim.api.nvim_win_get_cursor(0)[1]
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+
+    if curr_line == 4 then
+        local metodos = { "GET", "POST", "PUT", "DELETE" }
+        local current_method = lines[4]:match("Method: (%a+)")
+        local next_idx = 1
+        for i, m in ipairs(metodos) do
+            if m == current_method then
+                next_idx = (i % #metodos) + 1
+                break
+            end
+        end
+        vim.api.nvim_buf_set_lines(bufnr, 3, 4, false, { "[  Method: " .. metodos[next_idx] .. "  ]" })
+
+    elseif curr_line == 5 then
+        local url = lines[2]:gsub("%s+", "") -- La URL está en la línea 2
+        local method = lines[4]:match("Method: (%a+)")
+        if url == "" then
+            print("AdoRest: Error - URL is empty!")
+            return
+        end
+        M.ejecutar_peticion(method, url)
+    else
+        print("AdoRest: Use Enter on Method or SEND.")
+    end
 end
 
 M.open_bar = function()
-    -- if the window already exist and is valid, we close it
     if win_id and vim.api.nvim_win_is_valid(win_id) then
         vim.api.nvim_win_close(win_id, true)
         win_id = nil
@@ -18,72 +82,24 @@ M.open_bar = function()
     vim.wo.winfixwidth = true
     win_id = vim.api.nvim_get_current_win()
 
-    local buf =
-    vim.api.nvim_create_buf(false, true)
-    -- Map enter only for this buffer
-    vim.keymap.set('n', '<CR>', function()
-      -- Get the current line (cursor return {line, column})
-      local line = vim.api.nvim_win_get_cursor(0)[1]
-      local content = vim.api.nvim_buf_get_lines(buf, line - 1, line, false)[1]
-      local url = vim.api.nvim_buf_get_lines(buf, 0, 2, false)[2]
-      if content:match("GET") then
-          print("AdoRest: Launching GET request...")
-          vim.fn.jobstart({ "http", "--ignore-stdin", "GET", url }, {
-              stdout_buffered = true,
-              on_stdout = function(_, data)
-                  local clean_data = {}
-                  if data then
-                    for _, lines in ipairs(data) do
-                      -- line:gsub("%s+", "") quita espacios. Si queda algo, es contenido real.
-                      if lines ~= "" and lines:gsub("%s+", "") ~= "" then
-                        table.insert(clean_data, line)
-                      end
-                    end
-                  end
+    local buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "  --- AdoRest ---  ",
+        "http://127.0.0.1:8000/",
+        "",
+        "[  Method: GET  ]",
+        "[  SEND  ]"
+    })
 
-                  if #clean_data == 0 then
-                        print("AdoRest: Didnt receive any data.")
-                        return
-                  end
-                    local res_buf = vim.api.nvim_create_buf(false, true)
-                    -- Open a split at the bottom of the bar
-                    vim.cmd("belowright split")
-                    local res_win = vim.api.nvim_get_current_win()
-                    vim.api.nvim_win_set_buf(res_win, res_buf)
-                    -- Put the JSON in the buffer
-                    vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, data)
-                    -- Set the format
-                    vim.api.nvim_set_option_value('filetype', 'json', { buf = res_buf })
-                    vim.keymap.set('n', 'q', ':close<CR>', { buffer = res_buf, silent = true })
-                    print("AdoRest: ¡Success! Received " .. #data .. " fragments of JSON.")
-              end,
-              on_stderr = function(_, data)
-                if data and data[1] ~= "" then
-                  print("Error from AdoRest: " .. table.concat(data, " "))
-              end
-                end,
-                on_exit = function(_, code)
-                if code ~= 0 then
-                    print("AdoRest: the process died with the code " .. code .. ". do you have httpie installed?")
-                end
-              end,
-            })
-      elseif content:match("POST") then
-        print("AdoRest: Preparing POST request...")
-      else
-        print("AdoRest: Here is nothing to press")
-      end
-    end, { buffer = buf, silent = true })
-
+    vim.keymap.set('n', '<CR>', handle_enter, { buffer = buf, silent = true })
     vim.keymap.set("n", "q", function()
         if vim.api.nvim_win_is_valid(win_id) then
             vim.api.nvim_win_close(win_id, true)
             win_id = nil
         end
     end, { buffer = buf, silent = true })
-    -- buffer thats not a file
+
     vim.api.nvim_win_set_buf(win_id, buf)
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "  --- AdoRest ---  ", "http://127.0.0.1:8000/","", "  [ ] GET", "  [ ] POST" })
 end
 
 return M
