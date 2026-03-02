@@ -2,9 +2,13 @@ local M = {}
 local win_id = nil
 
 -- Function to make requests
-M.execute_request = function(method, url)
+M.execute_request = function(method, url, body)
     print("AdoRest: Launching " .. method .. " to " .. url .. "...")
-    vim.fn.jobstart({ "http", "--ignore-stdin", method, url }, {
+    local cmd = { "http", "--ignore-stdin", "--raw", body, method, url }
+    if body and body ~= "" and method ~= "GET" then
+        table.insert(cmd, body)
+    end
+    vim.fn.jobstart(cmd, {
         stdout_buffered = true,
         on_stdout = function(_, data)
             local clean_data = {}
@@ -60,11 +64,13 @@ local function handle_enter()
     elseif curr_line == 5 then
         local url = lines[2]:gsub("%s+", "") -- La URL está en la línea 2
         local method = lines[4]:match("Method: (%a+)")
+        local body_lines = vim.api.nvim_buf_get_lines(bufnr, 7, -1, false)
+        local body_str = table.concat(body_lines, "")
         if url == "" then
             print("AdoRest: Error - URL is empty!")
             return
         end
-        M.ejecutar_peticion(method, url)
+        M.execute_request(method, url, body_str)
     else
         print("AdoRest: Use Enter on Method or SEND.")
     end
@@ -88,7 +94,12 @@ M.open_bar = function()
         "http://127.0.0.1:8000/",
         "",
         "[  Method: GET  ]",
-        "[  SEND  ]"
+        "[  SEND  ]",
+        "",
+        "BODY (JSON)",
+        '{',
+        '   "key": "value"',
+        '}'
     })
 
     vim.keymap.set('n', '<CR>', handle_enter, { buffer = buf, silent = true })
