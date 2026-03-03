@@ -5,9 +5,6 @@ local win_id = nil
 M.execute_request = function(method, url, body)
     print("AdoRest: Launching " .. method .. " to " .. url .. "...")
     local cmd = { "http", "--ignore-stdin", "--raw", body, method, url }
-    if body and body ~= "" and method ~= "GET" then
-        table.insert(cmd, body)
-    end
     vim.fn.jobstart(cmd, {
         stdout_buffered = true,
         on_stdout = function(_, data)
@@ -31,6 +28,13 @@ M.execute_request = function(method, url, body)
                 local res_win = vim.api.nvim_get_current_win()
                 vim.api.nvim_win_set_buf(res_win, res_buf)
                 vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, clean_data)
+
+                if vim.fn.executable("jq") == 1 and #clean_data > 0 then
+                    vim.api.nvim_buf_call(res_buf, function()
+                        vim.cmd("%!jq .")
+                    end)
+                end
+
                 vim.api.nvim_set_option_value('filetype', 'json', { buf = res_buf })
                 vim.keymap.set('n', 'q', ':close<CR>', { buffer = res_buf, silent = true })
                 print("AdoRest: Success! JSON rendered.")
