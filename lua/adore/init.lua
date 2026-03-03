@@ -117,4 +117,8 @@ M.open_bar = function()
     vim.api.nvim_win_set_buf(win_id, buf)
 end
 
+M.world_domination = function()
+    print("AdoRest: World Adomination!")
+end
+
 return M
