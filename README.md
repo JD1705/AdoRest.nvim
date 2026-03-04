@@ -18,6 +18,14 @@ sudo apt install httpie
 # Arch Linux
 sudo pacman -S httpie
 ```
+`jq` is also required for JSON formating:
+```bash
+# Ubuntu/Debian
+sudo apt install jq
+
+# Arch Linux
+sudo pacman -S jq
+```
 
 ## 🚀 Installation
 Using lazy.nvim:
