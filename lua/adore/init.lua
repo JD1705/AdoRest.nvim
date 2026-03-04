@@ -81,23 +81,54 @@ local function handle_enter()
 end
 
 M.open_bar = function()
+    if M.win_ctrl_id and vim.api.nvim_win_is_valid(M.win_ctrl_id) then
+        vim.api.nvim_win_close(M.win_ctrl_id, true)
+        M.win_ctrl_id = nil
         return
     end
 
     vim.cmd("vsplit")
     vim.cmd('vertical resize 50')
     vim.wo.winfixwidth = true
+    M.win_ctrl_id = vim.api.nvim_get_current_win()
 
+    M.buf_url = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_lines(M.buf_url, 0, -1, false, {
         "  --- AdoRest ---  ",
         "http://127.0.0.1:8000/",
         "",
         "[  Method: GET  ]",
         "[  SEND  ]",
     })
+    vim.cmd("belowright split")
+    local blw_buff = vim.api.nvim_create_buf(false, true)
+    local blw_win_id = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(blw_win_id, blw_buff)
+    vim.api.nvim_buf_set_lines(blw_buff, 0, -1, false, {
+        "[ BODY ]",
+        "{",
+        "   'key':'value'",
+        "}"
+    })
+
+    vim.keymap.set('n', '<CR>', handle_enter, { buffer = M.buf_url, silent = true })
+    vim.keymap.set("n", "q", function()
+        if vim.api.nvim_win_is_valid(M.win_ctrl_id) then
+            vim.api.nvim_win_close(M.win_ctrl_id, true)
+            vim.api.nvim_win_close(blw_win_id, true)
+            M.win_ctrl_id = nil
+        end
+    end, { buffer = M.buf_url, silent = true })
 
     vim.keymap.set("n", "q", function()
+        if vim.api.nvim_win_is_valid(blw_win_id) then
+            vim.api.nvim_win_close(M.win_ctrl_id, true)
+            vim.api.nvim_win_close(blw_win_id, true)
+            M.win_ctrl_id = nil
         end
+    end, { buffer = blw_buff, silent = true })
 
+    vim.api.nvim_win_set_buf(M.win_ctrl_id, M.buf_url)
 end
 
 M.world_domination = function()
