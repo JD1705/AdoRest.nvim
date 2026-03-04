@@ -1,5 +1,5 @@
 local M = {}
-local win_id = nil
+M.ui = {win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, buf_header = nil, current_tab = "body"}
 
 -- Function to make requests
 M.execute_request = function(method, url, body)
@@ -81,40 +81,23 @@ local function handle_enter()
 end
 
 M.open_bar = function()
-    if win_id and vim.api.nvim_win_is_valid(win_id) then
-        vim.api.nvim_win_close(win_id, true)
-        win_id = nil
         return
     end
 
     vim.cmd("vsplit")
     vim.cmd('vertical resize 50')
     vim.wo.winfixwidth = true
-    win_id = vim.api.nvim_get_current_win()
 
-    local buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
         "  --- AdoRest ---  ",
         "http://127.0.0.1:8000/",
         "",
         "[  Method: GET  ]",
         "[  SEND  ]",
-        "",
-        "BODY (JSON)",
-        '{',
-        '   "key": "value"',
-        '}'
     })
 
-    vim.keymap.set('n', '<CR>', handle_enter, { buffer = buf, silent = true })
     vim.keymap.set("n", "q", function()
-        if vim.api.nvim_win_is_valid(win_id) then
-            vim.api.nvim_win_close(win_id, true)
-            win_id = nil
         end
-    end, { buffer = buf, silent = true })
 
-    vim.api.nvim_win_set_buf(win_id, buf)
 end
 
 M.world_domination = function()
