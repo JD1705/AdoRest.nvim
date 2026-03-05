@@ -125,6 +125,7 @@ M.open_bar = function()
         "[  Method: GET  ]",
         "[  SEND  ]",
     })
+    M.set_buffers()
     vim.api.nvim_set_option_value('filetype', 'json', { buf = M.buf_body })
     vim.keymap.set("n", "<Tab>", function()
         local windows = { M.win_ctrl_id, M.win_data_id }
@@ -141,10 +142,48 @@ M.open_bar = function()
         end
     end)
 
+    vim.keymap.set("n", "l", function()
+        local buffers = { M.buf_body, M.buf_header, M.buf_query }
+        if vim.api.nvim_win_is_valid(M.win_data_id) and vim.api.nvim_get_current_win() == M.win_data_id then
+            local current_buf = vim.api.nvim_get_current_buf()
+            local next_idx = 1
+            for i, m in ipairs(buffers) do
+                if m == current_buf then
+                    next_idx = (i % #buffers) + 1
+                    break
+                end
+            end
+            vim.api.nvim_set_current_buf(buffers[next_idx])
         end
+    end)
+    vim.keymap.set("n", "h", function()
+        local buffers = { M.buf_query, M.buf_header, M.buf_body }
+        if vim.api.nvim_win_is_valid(M.win_data_id) and vim.api.nvim_get_current_win() == M.win_data_id then
+            local current_buf = vim.api.nvim_get_current_buf()
+            local next_idx = 1
+            for i, m in ipairs(buffers) do
+                if m == current_buf then
+                    next_idx = (i % #buffers) + 1
+                    break
+                end
+            end
+            vim.api.nvim_set_current_buf(buffers[next_idx])
+        end
+    end)
 
+    vim.keymap.set('n', '<CR>', handle_enter, { buffer = M.buf_url, silent = true })
     vim.keymap.set("n", "q", function()
+        if vim.api.nvim_get_current_win() == M.win_ctrl_id or vim.api.nvim_get_current_win() == M.win_data_id then
+            if vim.api.nvim_win_is_valid(M.win_ctrl_id) and vim.api.nvim_win_is_valid(M.win_data_id) then
+                vim.api.nvim_win_close(M.win_ctrl_id, true)
+                vim.api.nvim_win_close(M.win_data_id, true)
+                M.win_ctrl_id = nil
+                M.win_data_id = nil
+            else
+                vim.api.nvim_win_close(vim.api.nvim_get_current_win(), true)
+            end
         end
+    end, { silent = true })
 
     vim.api.nvim_win_set_buf(M.win_ctrl_id, M.buf_url)
     vim.api.nvim_set_current_win(M.win_ctrl_id)
