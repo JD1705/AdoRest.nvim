@@ -68,7 +68,7 @@ local function handle_enter()
     elseif curr_line == 5 then
         local url = lines[2]:gsub("%s+", "") -- La URL está en la línea 2
         local method = lines[4]:match("Method: (%a+)")
-        local body_lines = vim.api.nvim_buf_get_lines(bufnr, 7, -1, false)
+        local body_lines = vim.api.nvim_buf_get_lines(M.buf_body, 1, -1, false)
         local body_str = table.concat(body_lines, "")
         if url == "" then
             print("AdoRest: Error - URL is empty!")
@@ -101,34 +101,50 @@ M.open_bar = function()
         "[  SEND  ]",
     })
     vim.cmd("belowright split")
-    local blw_buff = vim.api.nvim_create_buf(false, true)
-    local blw_win_id = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(blw_win_id, blw_buff)
-    vim.api.nvim_buf_set_lines(blw_buff, 0, -1, false, {
+    M.buf_body = vim.api.nvim_create_buf(false, true)
+    M.win_data_id = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(M.win_data_id, M.buf_body)
+    vim.api.nvim_buf_set_lines(M.buf_body, 0, -1, false, {
         "[ BODY ]",
         "{",
-        "   'key':'value'",
+        '    "key":"value"',
         "}"
     })
+    vim.api.nvim_set_option_value('filetype', 'json', { buf = M.buf_body })
+    vim.keymap.set("n", "<Tab>", function()
+        local windows = { M.win_ctrl_id, M.win_data_id }
+        if vim.api.nvim_win_is_valid(M.win_ctrl_id) and vim.api.nvim_win_is_valid(M.win_data_id) then
+            local current_window = vim.api.nvim_get_current_win()
+            local next_idx = 1
+            for i, m in ipairs(windows) do
+                if m == current_window then
+                    next_idx = (i % #windows) + 1
+                    break
+                end
+            end
+            vim.api.nvim_set_current_win(windows[next_idx])
+        end
+    end)
 
     vim.keymap.set('n', '<CR>', handle_enter, { buffer = M.buf_url, silent = true })
     vim.keymap.set("n", "q", function()
         if vim.api.nvim_win_is_valid(M.win_ctrl_id) then
             vim.api.nvim_win_close(M.win_ctrl_id, true)
-            vim.api.nvim_win_close(blw_win_id, true)
+            vim.api.nvim_win_close(M.win_data_id, true)
             M.win_ctrl_id = nil
         end
     end, { buffer = M.buf_url, silent = true })
 
     vim.keymap.set("n", "q", function()
-        if vim.api.nvim_win_is_valid(blw_win_id) then
+        if vim.api.nvim_win_is_valid(M.win_data_id) then
             vim.api.nvim_win_close(M.win_ctrl_id, true)
-            vim.api.nvim_win_close(blw_win_id, true)
+            vim.api.nvim_win_close(M.win_data_id, true)
             M.win_ctrl_id = nil
         end
-    end, { buffer = blw_buff, silent = true })
+    end, { buffer = M.buf_body, silent = true })
 
     vim.api.nvim_win_set_buf(M.win_ctrl_id, M.buf_url)
+    vim.api.nvim_set_current_win(M.win_ctrl_id)
 end
 
 M.world_domination = function()
