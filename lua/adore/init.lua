@@ -108,7 +108,9 @@ end
 M.open_bar = function()
     if M.win_ctrl_id and vim.api.nvim_win_is_valid(M.win_ctrl_id) then
         vim.api.nvim_win_close(M.win_ctrl_id, true)
+        vim.api.nvim_win_close(M.win_data_id, true)
         M.win_ctrl_id = nil
+        M.win_data_id = nil
         return
     end
 
