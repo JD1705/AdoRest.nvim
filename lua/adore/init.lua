@@ -2,11 +2,14 @@ local M = {}
 M.ui = {win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, buf_header = nil, buf_query = nil, current_tab = "body"}
 
 -- Function to make requests
-M.execute_request = function(method, url, body, headers)
+M.execute_request = function(method, url, body, headers, queries)
     print("AdoRest: Launching " .. method .. " to " .. url .. "...")
     local cmd = { "http", "--ignore-stdin", "--raw", body, method, url }
     for _, h in ipairs(headers) do
         table.insert(cmd, h)
+    end
+    for _, q in ipairs(queries) do
+        table.insert(cmd, q)
     end
     vim.fn.jobstart(cmd, {
         stdout_buffered = true,
@@ -75,15 +78,21 @@ local function handle_enter()
         local body_str = table.concat(body_lines, "")
         local headers_table = {}
         local header_lines = vim.api.nvim_buf_get_lines(M.buf_header, 1, -1, false)
-        for i, line in ipairs(header_lines) do
+        for _, line in ipairs(header_lines) do
             local key, value = line:match("([^:]+):%s*(.*)")
             table.insert(headers_table, key .. ": " .. value)
+        end
+        local query_table = {}
+        local query_lines = vim.api.nvim_buf_get_lines(M.buf_query, 1, -1, false)
+        for _, line in ipairs(query_lines) do
+            local key, value = line:match("([^:]+):%s*(.*)")
+            table.insert(query_table, key .. "==" .. value)
         end
         if url == "" then
             print("AdoRest: Error - URL is empty!")
             return
         end
-        M.execute_request(method, url, body_str, headers_table)
+        M.execute_request(method, url, body_str, headers_table, query_table)
     else
         print("AdoRest: Use Enter on Method or SEND.")
     end
