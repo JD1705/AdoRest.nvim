@@ -1,6 +1,66 @@
 local M = {}
 M.ui = {win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, buf_header = nil, buf_query = nil, current_tab = "body"}
 
+local function set_bar_keymaps(buf)
+    vim.keymap.set("n", "<Tab>", function()
+        if vim.api.nvim_get_current_win() == M.win_ctrl_id or vim.api.nvim_get_current_win() == M.win_data_id then
+            local windows = { M.win_ctrl_id, M.win_data_id }
+            if vim.api.nvim_win_is_valid(M.win_ctrl_id) and vim.api.nvim_win_is_valid(M.win_data_id) then
+                local current_window = vim.api.nvim_get_current_win()
+                local next_idx = 1
+                for i, m in ipairs(windows) do
+                    if m == current_window then
+                        next_idx = (i % #windows) + 1
+                        break
+                    end
+                end
+                vim.api.nvim_set_current_win(windows[next_idx])
+            end
+        end
+    end, { buffer = buf, noremap = true, silent = true })
+
+    vim.keymap.set("n", "l", function()
+        local buffers = { M.buf_body, M.buf_header, M.buf_query }
+        if vim.api.nvim_win_is_valid(M.win_data_id) and vim.api.nvim_get_current_win() == M.win_data_id then
+            local current_buf = vim.api.nvim_get_current_buf()
+            local next_idx = 1
+            for i, m in ipairs(buffers) do
+                if m == current_buf then
+                    next_idx = (i % #buffers) + 1
+                    break
+                end
+            end
+            vim.api.nvim_set_current_buf(buffers[next_idx])
+        end
+    end, { buffer = buf, silent = true })
+    vim.keymap.set("n", "h", function()
+        local buffers = { M.buf_query, M.buf_header, M.buf_body }
+        if vim.api.nvim_win_is_valid(M.win_data_id) and vim.api.nvim_get_current_win() == M.win_data_id then
+            local current_buf = vim.api.nvim_get_current_buf()
+            local next_idx = 1
+            for i, m in ipairs(buffers) do
+                if m == current_buf then
+                    next_idx = (i % #buffers) + 1
+                    break
+                end
+            end
+            vim.api.nvim_set_current_buf(buffers[next_idx])
+        end
+    end, { buffer = buf, silent = true})
+    vim.keymap.set("n", "q", function()
+        if vim.api.nvim_get_current_win() == M.win_ctrl_id or vim.api.nvim_get_current_win() == M.win_data_id then
+            if vim.api.nvim_win_is_valid(M.win_ctrl_id) and vim.api.nvim_win_is_valid(M.win_data_id) then
+                vim.api.nvim_win_close(M.win_ctrl_id, true)
+                vim.api.nvim_win_close(M.win_data_id, true)
+                M.win_ctrl_id = nil
+                M.win_data_id = nil
+            else
+                vim.api.nvim_win_close(vim.api.nvim_get_current_win(), true)
+            end
+        end
+    end, { buffer = buf, silent = true })
+end
+
 -- Function to make requests
 M.execute_request = function(method, url, body, headers, queries)
     print("AdoRest: Launching " .. method .. " to " .. url .. "...")
@@ -103,6 +163,7 @@ M.set_buffers = function()
     M.buf_body = vim.api.nvim_create_buf(false, true)
     M.win_data_id = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(M.win_data_id, M.buf_body)
+    set_bar_keymaps(M.buf_body)
     vim.api.nvim_buf_set_lines(M.buf_body, 0, -1, false, {
         "[ BODY ]",
         "{",
@@ -110,13 +171,13 @@ M.set_buffers = function()
         "}"
     })
     M.buf_header = vim.api.nvim_create_buf(false, true)
-    -- vim.api.nvim_win_set_buf(M.win_data_id, M.buf_header)
+    set_bar_keymaps(M.buf_header)
     vim.api.nvim_buf_set_lines(M.buf_header, 0, -1, false, {
         "[ HEADER ]",
         "name: value"
     })
     M.buf_query = vim.api.nvim_create_buf(false, true)
-    -- vim.api.nvim_win_set_buf(M.win_data_id, M.buf_header)
+    set_bar_keymaps(M.buf_query)
     vim.api.nvim_buf_set_lines(M.buf_query, 0, -1, false, {
         "[ QUERY ]",
         "name: value"
@@ -147,64 +208,9 @@ M.open_bar = function()
     })
     M.set_buffers()
     vim.api.nvim_set_option_value('filetype', 'json', { buf = M.buf_body })
-    vim.keymap.set("n", "<Tab>", function()
-        local windows = { M.win_ctrl_id, M.win_data_id }
-        if vim.api.nvim_win_is_valid(M.win_ctrl_id) and vim.api.nvim_win_is_valid(M.win_data_id) then
-            local current_window = vim.api.nvim_get_current_win()
-            local next_idx = 1
-            for i, m in ipairs(windows) do
-                if m == current_window then
-                    next_idx = (i % #windows) + 1
-                    break
-                end
-            end
-            vim.api.nvim_set_current_win(windows[next_idx])
-        end
-    end)
-
-    vim.keymap.set("n", "l", function()
-        local buffers = { M.buf_body, M.buf_header, M.buf_query }
-        if vim.api.nvim_win_is_valid(M.win_data_id) and vim.api.nvim_get_current_win() == M.win_data_id then
-            local current_buf = vim.api.nvim_get_current_buf()
-            local next_idx = 1
-            for i, m in ipairs(buffers) do
-                if m == current_buf then
-                    next_idx = (i % #buffers) + 1
-                    break
-                end
-            end
-            vim.api.nvim_set_current_buf(buffers[next_idx])
-        end
-    end)
-    vim.keymap.set("n", "h", function()
-        local buffers = { M.buf_query, M.buf_header, M.buf_body }
-        if vim.api.nvim_win_is_valid(M.win_data_id) and vim.api.nvim_get_current_win() == M.win_data_id then
-            local current_buf = vim.api.nvim_get_current_buf()
-            local next_idx = 1
-            for i, m in ipairs(buffers) do
-                if m == current_buf then
-                    next_idx = (i % #buffers) + 1
-                    break
-                end
-            end
-            vim.api.nvim_set_current_buf(buffers[next_idx])
-        end
-    end)
 
     vim.keymap.set('n', '<CR>', handle_enter, { buffer = M.buf_url, silent = true })
-    vim.keymap.set("n", "q", function()
-        if vim.api.nvim_get_current_win() == M.win_ctrl_id or vim.api.nvim_get_current_win() == M.win_data_id then
-            if vim.api.nvim_win_is_valid(M.win_ctrl_id) and vim.api.nvim_win_is_valid(M.win_data_id) then
-                vim.api.nvim_win_close(M.win_ctrl_id, true)
-                vim.api.nvim_win_close(M.win_data_id, true)
-                M.win_ctrl_id = nil
-                M.win_data_id = nil
-            else
-                vim.api.nvim_win_close(vim.api.nvim_get_current_win(), true)
-            end
-        end
-    end, { silent = true })
-
+    set_bar_keymaps(M.buf_url)
     vim.api.nvim_win_set_buf(M.win_ctrl_id, M.buf_url)
     vim.api.nvim_set_current_win(M.win_ctrl_id)
 end
