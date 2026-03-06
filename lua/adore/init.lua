@@ -1,5 +1,6 @@
 local M = {}
 M.ui = {win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, buf_header = nil, buf_query = nil, current_tab = "body"}
+M.config = { send_body = true, send_header = true, send_query = true }
 
 local function set_bar_keymaps(buf)
     vim.keymap.set("n", "<Tab>", function()
@@ -205,6 +206,10 @@ M.open_bar = function()
         "",
         "[  Method: GET  ]",
         "[  SEND  ]",
+        "",
+        "[  BODY: ON  ]",
+        "[  HEADS: ON  ]",
+        "[  QUERY: ON  ]"
     })
     M.set_buffers()
     vim.api.nvim_set_option_value('filetype', 'json', { buf = M.buf_body })
