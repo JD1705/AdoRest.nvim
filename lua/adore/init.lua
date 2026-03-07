@@ -154,6 +154,54 @@ local function handle_enter()
             return
         end
         M.execute_request(method, url, body_str, headers_table, query_table)
+    elseif curr_line == 7 then
+        local state = { "ON", "OFF" }
+        local current_state = lines[7]:match("BODY: (%a+)")
+        local next_state = 1
+        for i, m in ipairs(state) do
+            if m == current_state then
+                next_state = (i % #state) + 1
+                break
+            end
+        end
+        vim.api.nvim_buf_set_lines(bufnr, 6, 7, false, { "[  BODY: " .. state[next_state] .. "  ]" })
+        if state[next_state] == "ON" then
+            M.config.send_body = true
+        elseif state[next_state] == "OFF" then
+            M.config.send_body = false
+        end
+    elseif curr_line == 8 then
+        local state = { "ON", "OFF" }
+        local current_state = lines[8]:match("HEADS: (%a+)")
+        local next_state = 1
+        for i, m in ipairs(state) do
+            if m == current_state then
+                next_state = (i % #state) + 1
+                break
+            end
+        end
+        vim.api.nvim_buf_set_lines(bufnr, 7, 8, false, { "[  HEADS: " .. state[next_state] .. "  ]" })
+        if state[next_state] == "ON" then
+            M.config.send_header = true
+        elseif state[next_state] == "OFF" then
+            M.config.send_header = false
+        end
+    elseif curr_line == 9 then
+        local state = { "ON", "OFF" }
+        local current_state = lines[9]:match("QUERY: (%a+)")
+        local next_state = 1
+        for i, m in ipairs(state) do
+            if m == current_state then
+                next_state = (i % #state) + 1
+                break
+            end
+        end
+        vim.api.nvim_buf_set_lines(bufnr, 8, 9, false, { "[  QUERY: " .. state[next_state] .. "  ]" })
+        if state[next_state] == "ON" then
+            M.config.send_query = true
+        elseif state[next_state] == "OFF" then
+            M.config.send_query = false
+        end
     else
         print("AdoRest: Use Enter on Method or SEND.")
     end
@@ -221,6 +269,9 @@ M.open_bar = function()
     set_bar_keymaps(M.buf_url)
     vim.api.nvim_win_set_buf(M.win_ctrl_id, M.buf_url)
     vim.api.nvim_set_current_win(M.win_ctrl_id)
+    M.config.send_body = true
+    M.config.send_header = true
+    M.config.send_query = true
 end
 
 M.world_domination = function()
