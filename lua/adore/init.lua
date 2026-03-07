@@ -65,12 +65,19 @@ end
 -- Function to make requests
 M.execute_request = function(method, url, body, headers, queries)
     print("AdoRest: Launching " .. method .. " to " .. url .. "...")
-    local cmd = { "http", "--ignore-stdin", "--raw", body, method, url }
-    for _, h in ipairs(headers) do
-        table.insert(cmd, h)
+    local cmd = { "http", "--ignore-stdin", method, url }
+    if M.config.send_body then
+        cmd = { "http", "--ignore-stdin", "--raw", body, method, url }
     end
-    for _, q in ipairs(queries) do
-        table.insert(cmd, q)
+    if M.config.send_header then
+        for _, h in ipairs(headers) do
+            table.insert(cmd, h)
+        end
+    end
+    if M.config.send_query then
+        for _, q in ipairs(queries) do
+            table.insert(cmd, q)
+        end
     end
     vim.fn.jobstart(cmd, {
         stdout_buffered = true,
