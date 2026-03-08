@@ -30,28 +30,26 @@ sudo pacman -S jq
 ## 🚀 Installation
 Using lazy.nvim:
 ```Lua
-{
+return {
   "JD1705/AdoRest.nvim",
-  config = function()
-    -- Keybinding to toggle the AdoRest sidebar
-    vim.keymap.set('n', '<leader>ar', ':AdoRest bar<CR>', { silent = true })
-  end
 }
 ```
 
+## Keymaps
+- `<leader>ar` to open the lateral bar
+- `<Tab>` to switch between the control section (url and buttons) and the data section (body, header & query)
+- `h` and `l` to move between buffers in the data section
+- `q` to close the windows
+
 ## 🛠 Usage
 
-1. Open the sidebar with :AdoRest (or your custom shortcut).
-2. Move the cursor to a request line (e.g., > GET).
-3. Press Enter to execute the request.
-4. The result will appear in a horizontal split below.
+1. Open the sidebar with :AdoRest or with <leader>ar
+2. Modify the url in the second line
+3. Move to the next window with <Tab> and modify the body, header and queries
+4. Move the cursor to the send line 
+5. Press Enter to execute the request.
+6. The result will appear in a horizontal split below.
 
 ## 🚧 Roadmap
-
-- [ ] Support for dynamic URLs in the sidebar.
-
-- [ ] POST request body support.
-
-- [ ] Header customization.
 
 - [ ] Response history.
