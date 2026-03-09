@@ -1,6 +1,19 @@
 local M = {}
-M.ui = {win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, buf_header = nil, buf_query = nil, current_tab = "body"}
+M.ui = {win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, buf_header = nil, buf_query = nil, last_win = nil, current_tab = "body"}
 M.config = { send_body = true, send_header = true, send_query = true }
+
+local function unfocus_bar()
+    if vim.api.nvim_get_current_win() == M.win_ctrl_id or vim.api.nvim_get_current_win() == M.win_data_id then
+        vim.api.nvim_set_current_win(M.ui.last_win)
+    end
+end
+local function focus_bar()
+    if vim.api.nvim_get_current_win() == M.ui.last_win and M.win_ctrl_id ~= nil then
+        vim.api.nvim_set_current_win(M.win_ctrl_id)
+    end
+end
+
+
 
 local function set_bar_keymaps(buf)
     vim.keymap.set("n", "<Tab>", function()
@@ -19,7 +32,12 @@ local function set_bar_keymaps(buf)
             end
         end
     end, { buffer = buf, noremap = true, silent = true })
-
+    vim.keymap.set("n", "<Esc>", function ()
+        unfocus_bar()
+    end, { buffer = buf, noremap = true, silent = true })
+    vim.keymap.set("n", "<leader><Esc>", function ()
+        focus_bar()
+    end, { noremap = true, silent = true })
     vim.keymap.set("n", "l", function()
         local buffers = { M.buf_body, M.buf_header, M.buf_query }
         if vim.api.nvim_win_is_valid(M.win_data_id) and vim.api.nvim_get_current_win() == M.win_data_id then
@@ -241,6 +259,7 @@ M.set_buffers = function()
 end
 
 M.open_bar = function()
+    M.ui.last_win = vim.api.nvim_get_current_win()
     if M.win_ctrl_id and vim.api.nvim_win_is_valid(M.win_ctrl_id) then
         vim.api.nvim_win_close(M.win_ctrl_id, true)
         vim.api.nvim_win_close(M.win_data_id, true)
