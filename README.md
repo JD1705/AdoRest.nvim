@@ -40,6 +40,7 @@ return {
 - `<Tab>` to switch between the control section (url and buttons) and the data section (body, header & query)
 - `h` and `l` to move between buffers in the data section
 - `q` to close the windows
+- `<Esc>` to unfocus the bar and `<leader><Esc>` to focus it back
 
 ## 🛠 Usage
 
