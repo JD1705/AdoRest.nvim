@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## unreleased
 
+## [1.2.0] - 2026-03-09
+
 ### Added
 - UI table in M to manage windows id and buffers
 - movement between windows using <Tab>
