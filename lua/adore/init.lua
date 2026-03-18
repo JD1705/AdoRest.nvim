@@ -116,7 +116,7 @@ M.execute_request = function(method, url, body, headers, queries)
 
             vim.schedule(function()
                 local res_buf = vim.api.nvim_create_buf(false, true)
-                vim.cmd("belowright split")
+                vim.api.nvim_open_win(res_buf, true, { relative = "editor", width = 100, height = 25, style = "minimal", border = "single", row = vim.o.lines/5, col = vim.o.columns/4})
                 local res_win = vim.api.nvim_get_current_win()
                 vim.api.nvim_win_set_buf(res_win, res_buf)
                 local json = {}
