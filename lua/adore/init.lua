@@ -83,9 +83,9 @@ end
 -- Function to make requests
 M.execute_request = function(method, url, body, headers, queries)
     print("AdoRest: Launching " .. method .. " to " .. url .. "...")
-    local cmd = { "http", "--ignore-stdin", method, url }
+    local cmd = { "http", "--ignore-stdin", "-v", method, url }
     if M.config.send_body then
-        cmd = { "http", "--ignore-stdin", "--raw", body, method, url }
+        cmd = { "http", "--ignore-stdin", "-v", "--raw", body, method, url }
     end
     if M.config.send_header then
         for _, h in ipairs(headers) do
@@ -119,7 +119,9 @@ M.execute_request = function(method, url, body, headers, queries)
                 vim.cmd("belowright split")
                 local res_win = vim.api.nvim_get_current_win()
                 vim.api.nvim_win_set_buf(res_win, res_buf)
-                vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, clean_data)
+                local json = {}
+                table.insert(json, clean_data[#clean_data])
+                vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, json)
 
                 if vim.fn.executable("jq") == 1 and #clean_data > 0 then
                     vim.api.nvim_buf_call(res_buf, function()
@@ -129,7 +131,20 @@ M.execute_request = function(method, url, body, headers, queries)
 
                 vim.api.nvim_set_option_value('filetype', 'json', { buf = res_buf })
                 vim.keymap.set('n', 'q', ':close<CR>', { buffer = res_buf, silent = true })
-                print("AdoRest: Success! JSON rendered.")
+                for _, line in ipairs(clean_data) do
+                    local status_code = line:match("HTTP/%d.%d%s(%d+)")
+                    if status_code ~= nil then
+                        if string.sub(status_code, 1, 1) == "2" then
+                            print("AdoRest: Successful Response with Code " .. status_code)
+                        elseif string.sub(status_code, 1, 1) == "3" then
+                            print("AdoRest: You have been Redirected Successfully with Code " .. status_code)
+                        elseif string.sub(status_code,1 ,1) == "4" then
+                            print("AdoRest: A Client-side error ocurred with Code " .. status_code)
+                        elseif string.sub(status_code,1,1) == "5" then
+                            print("AdoRest: A Server-side error ocurred with Code " .. status_code)
+                        end
+                    end
+                end
             end)
         end,
         on_stderr = function(_, data)
