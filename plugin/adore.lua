@@ -1,17 +1,15 @@
-vim.api.nvim_create_user_command("AdoRest",
-function(opts)
-    local internal = require("adore")
-    -- first parameter if user writes "bar"
-    if opts.args == "bar" then
-        internal.open_bar()
-    --if not then show the message
-    else
-        internal.world_domination()
-    end
-end, {
-    nargs = "?" -- this makes the command to accept 0 or 1
-})
-
-vim.keymap.set('n', '<leader>ar', function()
+vim.api.nvim_create_user_command("AdoRest", function()
     require('adore').open_bar()
-end, { desc = 'Open AdoRest lateral bar' })
+end, { desc = "Open AdoRest client"})
+
+vim.api.nvim_create_user_command("AdoRestFocus", function ()
+    require('adore').focus_bar()
+end, { desc = "Focus the cursor on the Client"})
+
+vim.api.nvim_create_user_command("AdoRestUnFocus", function ()
+    require('adore').unfocus_bar()
+end, { desc = "Unfocus the cursor from the client and focus on the editor window"})
+
+vim.api.nvim_create_user_command("AdoRestMessage", function ()
+    require('adore').world_domination()
+end, { desc = "Print a message"})
