@@ -180,14 +180,18 @@ local function handle_enter()
         local headers_table = {}
         local header_lines = vim.api.nvim_buf_get_lines(M.ui.buf_header, 1, -1, false)
         for _, line in ipairs(header_lines) do
-            local key, value = line:match("([^:]+):%s*(.*)")
-            table.insert(headers_table, key .. ": " .. value)
+            if line ~= "" then
+                local key, value = line:match("([^:]+):%s*(.*)")
+                table.insert(headers_table, key .. ": " .. value)
+            end
         end
         local query_table = {}
         local query_lines = vim.api.nvim_buf_get_lines(M.ui.buf_query, 1, -1, false)
         for _, line in ipairs(query_lines) do
-            local key, value = line:match("([^:]+):%s*(.*)")
-            table.insert(query_table, key .. "==" .. value)
+            if line ~= "" then
+                local key, value = line:match("([^:]+):%s*(.*)")
+                table.insert(query_table, key .. "==" .. value)
+            end
         end
         if url == "" then
             print("AdoRest: Error - URL is empty!")
@@ -255,21 +259,41 @@ M.set_buffers = function()
     set_bar_keymaps(M.ui.buf_body)
     vim.api.nvim_buf_set_lines(M.ui.buf_body, 0, -1, false, {
         "[ BODY ]",
-        "{",
-        '"key":"value"',
-        "}"
+        ""
     })
+    local vt_ns = vim.api.nvim_create_namespace("adore_namespace")
     M.ui.buf_header = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_extmark(M.ui.buf_body, vt_ns, 1, 0, { virt_lines = {{{ "{" , "Comment" }}, {{ "  'key': 'value'", "Comment" }}, {{ "}", "Comment" }} }, virt_text_pos = "inline", hl_mode = "combine"})
+    vim.api.nvim_create_autocmd("InsertEnter", {
+        buffer = M.ui.buf_body,
+        callback = function ()
+            vim.api.nvim_buf_clear_namespace(M.ui.buf_body, vt_ns, 0, -1)
+        end
+    })
     set_bar_keymaps(M.ui.buf_header)
     vim.api.nvim_buf_set_lines(M.ui.buf_header, 0, -1, false, {
         "[ HEADER ]",
-        "name: value"
+        ""
+    })
+    vim.api.nvim_buf_set_extmark(M.ui.buf_header, vt_ns, 1, 0, { virt_text = {{ "name: value", "Comment"}}, virt_text_pos = "inline", hl_mode = "combine"})
+    vim.api.nvim_create_autocmd("InsertEnter", {
+        buffer = M.ui.buf_header,
+        callback = function ()
+            vim.api.nvim_buf_clear_namespace(M.ui.buf_header, vt_ns, 0, -1)
+        end
     })
     M.ui.buf_query = vim.api.nvim_create_buf(false, true)
     set_bar_keymaps(M.ui.buf_query)
     vim.api.nvim_buf_set_lines(M.ui.buf_query, 0, -1, false, {
         "[ QUERY ]",
-        "name: value"
+        ""
+    })
+    vim.api.nvim_buf_set_extmark(M.ui.buf_query, vt_ns, 1, 0, { virt_text = {{ "name: value", "Comment"}}, virt_text_pos = "inline", hl_mode = "combine"})
+    vim.api.nvim_create_autocmd("InsertEnter", {
+        buffer = M.ui.buf_query,
+        callback = function ()
+            vim.api.nvim_buf_clear_namespace(M.ui.buf_query, vt_ns, 0, -1)
+        end
     })
 end
 
