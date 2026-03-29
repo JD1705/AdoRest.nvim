@@ -1,5 +1,6 @@
 local M = {}
 M.ui = {win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, buf_header = nil, buf_query = nil, last_win = nil, current_tab = "body"}
+M.config = {floating_border = "single", bar_pos = "right" }
 
 M.unfocus_bar = function ()
     if vim.api.nvim_get_current_win() == M.ui.win_ctrl_id or vim.api.nvim_get_current_win() == M.ui.win_data_id then
@@ -12,7 +13,9 @@ M.focus_bar = function()
     end
 end
 
-
+function M.setup(user_opts)
+    M.config = vim.tbl_deep_extend("force", M.config, user_opts or {})
+end
 
 local function set_bar_keymaps(buf)
     vim.keymap.set("n", "<Tab>", function()
@@ -115,7 +118,7 @@ M.execute_request = function(method, url, body, headers, queries)
 
             vim.schedule(function()
                 local res_buf = vim.api.nvim_create_buf(false, true)
-                vim.api.nvim_open_win(res_buf, true, { relative = "editor", width = 100, height = 25, style = "minimal", border = "single", row = vim.o.lines/5, col = vim.o.columns/4})
+                vim.api.nvim_open_win(res_buf, true, { relative = "editor", width = 100, height = 25, style = "minimal", border = M.config.floating_border, row = vim.o.lines/5, col = vim.o.columns/4})
                 local res_win = vim.api.nvim_get_current_win()
                 vim.api.nvim_win_set_buf(res_win, res_buf)
                 local json = {}
@@ -257,8 +260,11 @@ M.open_bar = function()
         M.ui.win_data_id = nil
         return
     end
-
-    vim.cmd("rightbelow vsplit")
+    if M.config.bar_pos == "right" then
+        vim.cmd("rightbelow vsplit")
+    elseif M.config.bar_pos == "left" then
+        vim.cmd("vsplit")
+    end
     vim.cmd('vertical resize 50')
     vim.wo.winfixwidth = true
     M.ui.win_ctrl_id = vim.api.nvim_get_current_win()
