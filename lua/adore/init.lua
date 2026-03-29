@@ -258,7 +258,7 @@ M.open_bar = function()
         return
     end
 
-    vim.cmd("vsplit")
+    vim.cmd("rightbelow vsplit")
     vim.cmd('vertical resize 50')
     vim.wo.winfixwidth = true
     M.ui.win_ctrl_id = vim.api.nvim_get_current_win()
