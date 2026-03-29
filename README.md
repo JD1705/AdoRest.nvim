@@ -37,20 +37,24 @@ return {
 ```
 
 ## Keymaps
-- `<leader>ar` to open the lateral bar
 - `<Tab>` to switch between the control section (url and buttons) and the data section (body, header & query)
 - `h` and `l` to move between buffers in the data section
 - `q` to close the windows
-- `<Esc>` to unfocus the bar and `<leader><Esc>` to focus it back
+- `<Esc>` to unfocus the bar and `<Alt><Esc>` to focus it back
+
+## Commands
+- `:AdoRest` opens the sidebar
+- `:AdoRestFocus` set the cursor on the sidebar if is open
+- `:AdoRestUnfocus` set the cursor on the editor window
 
 ## 🛠 Usage
 
-1. Open the sidebar with :AdoRest or with <leader>ar
+1. Open the sidebar with :AdoRest or with
 2. Modify the url in the second line
 3. Move to the next window with <Tab> and modify the body, header and queries
 4. Move the cursor to the send line 
 5. Press Enter to execute the request.
-6. The result will appear in a horizontal split below.
+6. The response will appear in a floating window
 
 ## 🚧 Roadmap
 
