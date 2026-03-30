@@ -36,6 +36,28 @@ return {
 }
 ```
 
+## Configuration
+```Lua
+require("adore").setup({
+    -- bar_pos: position of the bar, can be right or left
+    bar_pos = "left", -- default is "right"
+    -- floating_border: change the border for the response floating window
+    floating_border = "rounded" -- default is "single"
+})
+```
+
+### Setup Parameters
+| Parameter | Type | Valid Options |
+| ------------- | -------------- | -------------- |
+| bar_pos | string | "left" |
+|  |  | "right" |
+| floating_border | string | "rounded" |
+|  |  | "single" |
+|  |  | "none" |
+|  |  | "double" |
+|  |  | "solid" |
+
+
 ## Keymaps
 - `<Tab>` to switch between the control section (url and buttons) and the data section (body, header & query)
 - `h` and `l` to move between buffers in the data section
