@@ -1,12 +1,12 @@
 # AdoRest.nvim 🎤
 ### Request Workflow
-[adorest_request_workflow_video](assets/request.webm)
+[request.webm](https://github.com/user-attachments/assets/c2684e37-8b47-4bf2-8c8e-f9aeb4c666ab)
 
 ### Open AdoRest bar
-[adorest_open_bar_by_command_video](assets/open_close.webm)
+[open_close.webm](https://github.com/user-attachments/assets/0d36f5d2-44ff-4013-80d0-7a8225b06030)
 
 ### Focus and Unfocus
-[adorest_focus_unfocus_by_command_video](assets/focun_unfocus.webm)
+[focus_unfocus.webm](https://github.com/user-attachments/assets/07240b67-696c-4830-ba34-72ffd3c63111)
 
 A lightweight, asynchronous HTTP client for Neovim inspired by Thunder Client. 
 Written in Lua, powered by **httpie**.
