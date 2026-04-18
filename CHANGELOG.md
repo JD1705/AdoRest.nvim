@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## unreleased
 
+### Added
+- create user commands for focus, unfocus, open_bar and message functions
+- virtual text to show an example of how the data should be written for bodies, queries and headers
+- setup function that receive parameters from the user and modifies the configuration table
+
+### Changed
+- Result window now opens as a floating window rather than a split in the middle of the bar
+- response message now changes dynamically depending on the status code
+- changed focus keymap to `Alt+Esc` for user-friendly without depending on `<leader>`
+- changed bar to the right side of the window
+
+### Fixed
+- UI variable references now point to the specified table
+- fix focus/unfocus functions from local to be part of the M table
+
+### Removed
+- delete "on" and "off" buttons for data activation
+
 ## [1.2.0] - 2026-03-09
 
 ### Added
