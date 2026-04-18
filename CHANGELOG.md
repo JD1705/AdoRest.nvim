@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## unreleased
 
+## [2.0.0] - 2026-04-18
+
 ### Added
 - create user commands for focus, unfocus, open_bar and message functions
 - virtual text to show an example of how the data should be written for bodies, queries and headers
