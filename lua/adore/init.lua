@@ -1,6 +1,6 @@
 local M = {}
 M.ui = {win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, buf_header = nil, buf_query = nil, last_win = nil, current_tab = "body"}
-M.config = {floating_border = "single", bar_pos = "right" }
+M.config = {floating_border = "single", bar_pos = "right", bar_width = 50 }
 
 M.unfocus_bar = function ()
     if vim.api.nvim_get_current_win() == M.ui.win_ctrl_id or vim.api.nvim_get_current_win() == M.ui.win_data_id then
@@ -265,7 +265,7 @@ M.open_bar = function()
     elseif M.config.bar_pos == "left" then
         vim.cmd("vsplit")
     end
-    vim.cmd('vertical resize 50')
+    vim.cmd('vertical resize ' .. M.config.bar_width )
     vim.wo.winfixwidth = true
     M.ui.win_ctrl_id = vim.api.nvim_get_current_win()
 
