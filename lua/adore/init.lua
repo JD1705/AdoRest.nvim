@@ -157,6 +157,30 @@ M.execute_request = function(method, url, body, headers, queries)
     })
 end
 
+M.get_data = function (lines)
+    local url = lines[2]:gsub("%s+", "")
+    local method = lines[4]:match("Method: (%a+)")
+    local body_lines = vim.api.nvim_buf_get_lines(M.ui.buf_body, 1, -1, false)
+    local body_str = table.concat(body_lines, "")
+    local headers_table = {}
+    local header_lines = vim.api.nvim_buf_get_lines(M.ui.buf_header, 1, -1, false)
+    for _, line in ipairs(header_lines) do
+        if line ~= "" then
+            local key, value = line:match("([^:]+):%s*(.*)")
+            table.insert(headers_table, key .. ": " .. value)
+        end
+    end
+    local query_table = {}
+    local query_lines = vim.api.nvim_buf_get_lines(M.ui.buf_query, 1, -1, false)
+    for _, line in ipairs(query_lines) do
+        if line ~= "" then
+            local key, value = line:match("([^:]+):%s*(.*)")
+            table.insert(query_table, key .. "==" .. value)
+        end
+    end
+    return { url = url, method = method, body = body_str, header = headers_table, query = query_table}
+end
+
 local function handle_enter()
     local bufnr = vim.api.nvim_get_current_buf()
     local curr_line = vim.api.nvim_win_get_cursor(0)[1]
@@ -175,31 +199,12 @@ local function handle_enter()
         vim.api.nvim_buf_set_lines(bufnr, 3, 4, false, { "[  Method: " .. metodos[next_idx] .. "  ]" })
 
     elseif curr_line == 5 then
-        local url = lines[2]:gsub("%s+", "")
-        local method = lines[4]:match("Method: (%a+)")
-        local body_lines = vim.api.nvim_buf_get_lines(M.ui.buf_body, 1, -1, false)
-        local body_str = table.concat(body_lines, "")
-        local headers_table = {}
-        local header_lines = vim.api.nvim_buf_get_lines(M.ui.buf_header, 1, -1, false)
-        for _, line in ipairs(header_lines) do
-            if line ~= "" then
-                local key, value = line:match("([^:]+):%s*(.*)")
-                table.insert(headers_table, key .. ": " .. value)
-            end
-        end
-        local query_table = {}
-        local query_lines = vim.api.nvim_buf_get_lines(M.ui.buf_query, 1, -1, false)
-        for _, line in ipairs(query_lines) do
-            if line ~= "" then
-                local key, value = line:match("([^:]+):%s*(.*)")
-                table.insert(query_table, key .. "==" .. value)
-            end
-        end
-        if url == "" then
+        local request = M.get_data(lines)
+        if request.url == "" then
             print("AdoRest: Error - URL is empty!")
             return
         end
-        M.execute_request(method, url, body_str, headers_table, query_table)
+        M.execute_request(request.method, request.url, request.body, request.header, request.query)
     else
         print("AdoRest: Use Enter on Method or SEND.")
     end
