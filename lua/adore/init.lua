@@ -1,6 +1,16 @@
 local M = {}
 M.ui = {win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, buf_header = nil, buf_query = nil, last_win = nil, current_tab = "body"}
 M.config = {floating_border = "single", bar_pos = "right", bar_width = 50 }
+M.history = require("adore.history")
+
+M.open_history = function ()
+    local has_telescope, telescope = pcall(require, "telescope")
+    if not has_telescope then
+        vim.notify("AdoRest: Telescope no está instalado", vim.log.levels.ERROR)
+        return
+    end
+    require("adore.picker").history_s()
+end
 
 M.unfocus_bar = function ()
     if vim.api.nvim_get_current_win() == M.ui.win_ctrl_id or vim.api.nvim_get_current_win() == M.ui.win_data_id then
@@ -134,17 +144,23 @@ M.execute_request = function(method, url, body, headers, queries)
                 vim.api.nvim_set_option_value('filetype', 'json', { buf = res_buf })
                 vim.keymap.set('n', 'q', ':close<CR>', { buffer = res_buf, silent = true })
                 for _, line in ipairs(clean_data) do
-                    local status_code = line:match("HTTP/%d.%d%s(%d+)")
-                    if status_code ~= nil then
-                        if string.sub(status_code, 1, 1) == "2" then
-                            print("AdoRest: Successful Response with Code " .. status_code)
-                        elseif string.sub(status_code, 1, 1) == "3" then
-                            print("AdoRest: You have been Redirected Successfully with Code " .. status_code)
-                        elseif string.sub(status_code,1 ,1) == "4" then
-                            print("AdoRest: A Client-side error ocurred with Code " .. status_code)
-                        elseif string.sub(status_code,1,1) == "5" then
-                            print("AdoRest: A Server-side error ocurred with Code " .. status_code)
+                    Status_code = line:match("HTTP/%d.%d%s(%d+)")
+                    if Status_code ~= nil then
+                        if string.sub(Status_code, 1, 1) == "2" then
+                            print("AdoRest: Successful Response with Code " .. Status_code)
+                        elseif string.sub(Status_code, 1, 1) == "3" then
+                            print("AdoRest: You have been Redirected Successfully with Code " .. Status_code)
+                        elseif string.sub(Status_code,1 ,1) == "4" then
+                            print("AdoRest: A Client-side error ocurred with Code " .. Status_code)
+                        elseif string.sub(Status_code,1,1) == "5" then
+                            print("AdoRest: A Server-side error ocurred with Code " .. Status_code)
                         end
+                    local lines = vim.api.nvim_buf_get_lines(M.ui.buf_url, 0, -1, false)
+                    local request_data = M.get_data(lines)
+                    local timestamp = os.date("%H:%M:%S")
+                    local response = { request = "[" .. timestamp .. "]" .. " " .. request_data.method .. " " .. "[" .. request_data.url .. "]" .. " " .. Status_code, json_response = json }
+
+                    table.insert(M.history, response)
                     end
                 end
             end)
