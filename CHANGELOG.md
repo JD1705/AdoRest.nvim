@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## unreleased
 
+## [2.1.0] - 2026-05-02
+
+### Added
+- implement user command to send requests (only if the bar is open)
+- add width variable to `M.config` table to be modifiable by the user
+- add a table to save request & response data in `lua/adore/history.lua`
+- implement history of request & response per session (only with telescope installed)
+- create & configure a telescope picker in `lua/adore/picker.lua`
+### Changed
+- move data recollection logic from `handle_enter` to `M.get_data`
+
 ## [2.0.0] - 2026-04-18
 
 ### Added
