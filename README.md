@@ -40,6 +40,7 @@ Using lazy.nvim:
 ```Lua
 return {
   "JD1705/AdoRest.nvim",
+  -- dependecies = { "nvim-telescope/telescope.nvim" } only needed if you want to use the history
 }
 ```
 
@@ -49,7 +50,9 @@ require("adore").setup({
     -- bar_pos: position of the bar, can be right or left
     bar_pos = "left", -- default is "right"
     -- floating_border: change the border for the response floating window
-    floating_border = "rounded" -- default is "single"
+    floating_border = "rounded", -- default is "single"
+    -- bar_width: AdoRest bar width
+    bar_width = 30, -- default is 50
 })
 ```
 
@@ -63,7 +66,7 @@ require("adore").setup({
 |  |  | "none" |
 |  |  | "double" |
 |  |  | "solid" |
-
+| bar_width | integer | 50 |
 
 ## Keymaps
 - `<Tab>` to switch between the control section (url and buttons) and the data section (body, header & query)
@@ -75,6 +78,8 @@ require("adore").setup({
 - `:AdoRest` opens the sidebar
 - `:AdoRestFocus` set the cursor on the sidebar if is open
 - `:AdoRestUnfocus` set the cursor on the editor window
+- `:AdoRestRequest` send the request (only if the AdoRest bar is open)
+- `:AdoRestHistory` open a telescope window with the history of request/responses
 
 ## 🛠 Usage
 
@@ -84,7 +89,3 @@ require("adore").setup({
 4. Move the cursor to the send line 
 5. Press Enter to execute the request.
 6. The response will appear in a floating window
-
-## 🚧 Roadmap
-
-- [ ] Response history.
