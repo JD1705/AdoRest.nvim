@@ -6,7 +6,7 @@ M.history = require("adore.history")
 M.open_history = function ()
     local has_telescope, telescope = pcall(require, "telescope")
     if not has_telescope then
-        vim.notify("AdoRest: Telescope no está instalado", vim.log.levels.ERROR)
+        vim.notify("AdoRest: Telescope is not installed", vim.log.levels.ERROR)
         return
     end
     require("adore.picker").history_s()
@@ -203,16 +203,16 @@ local function handle_enter()
     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
     if curr_line == 4 then
-        local metodos = { "GET", "POST", "PUT", "DELETE" }
+        local methods = { "GET", "POST", "PUT", "DELETE" }
         local current_method = lines[4]:match("Method: (%a+)")
         local next_idx = 1
-        for i, m in ipairs(metodos) do
+        for i, m in ipairs(methods) do
             if m == current_method then
-                next_idx = (i % #metodos) + 1
+                next_idx = (i % #methods) + 1
                 break
             end
         end
-        vim.api.nvim_buf_set_lines(bufnr, 3, 4, false, { "[  Method: " .. metodos[next_idx] .. "  ]" })
+        vim.api.nvim_buf_set_lines(bufnr, 3, 4, false, { "[  Method: " .. methods[next_idx] .. "  ]" })
 
     elseif curr_line == 5 then
         local request = M.get_data(lines)

@@ -11,7 +11,7 @@ local displayer = entry_display.create({
 separator = " ",
 items = {
         { width = 10 }, -- Timestamp: [HH:MM:SS]
-        { width = 3 },  -- Método: GET, POST
+        { width = 3 },  -- Method: GET, POST
         { remaining = true }, -- URL
         { width = 4 },  -- Status: 200, 404
     },
@@ -26,14 +26,14 @@ M.history_s = function (opts)
             entry_maker = function (entry)
                 local time, method, url, status= entry.request:match("^(%[%d+:%d+:%d+%])%s+(%S+)%s+(.+)%s+(%d+)$")
                 local status_hl = "TelescopeResultsVariable"
-                if status:match("^2") then status_hl = "DiagnosticOk"    -- Verde para 2xx
-                elseif status:match("^4") then status_hl = "DiagnosticWarn" -- Amarillo para 4xx
-                elseif status:match("^5") then status_hl = "DiagnosticError" -- Rojo para 5xx
+                if status:match("^2") then status_hl = "DiagnosticOk"    -- Green for 2xx
+                elseif status:match("^4") then status_hl = "DiagnosticWarn" -- Yellow for 4xx
+                elseif status:match("^5") then status_hl = "DiagnosticError" -- Red for 5xx
                 end
                 local make_display = function(ent)
                 return displayer {
                 { time, "Comment" },
-                { method, "Function" }, -- Aquí puedes usar grupos de highlight como 'Function' o 'String'
+                { method, "Function" },
                 {url, "Keyword"},
                 { status, status_hl},
                 }
