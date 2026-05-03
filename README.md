@@ -89,3 +89,8 @@ require("adore").setup({
 4. Move the cursor to the send line 
 5. Press Enter to execute the request.
 6. The response will appear in a floating window
+
+## Support
+if you find this plugin useful and want to support my work, feel free to buy me a coffee!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jd1705)
