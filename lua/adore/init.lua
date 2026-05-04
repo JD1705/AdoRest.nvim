@@ -3,6 +3,21 @@ M.ui = {win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, buf
 M.config = {floating_border = "single", bar_pos = "right", bar_width = 50 }
 M.history = require("adore.history")
 
+M.iter_buffs = function (...)
+    local buffers = {...}
+    if vim.api.nvim_win_is_valid(M.ui.win_data_id) and vim.api.nvim_get_current_win() == M.ui.win_data_id then
+        local current_buf = vim.api.nvim_get_current_buf()
+        local next_idx = 1
+        for i, m in ipairs(buffers) do
+            if m == current_buf then
+                next_idx = (i % #buffers) + 1
+                break
+            end
+        end
+        vim.api.nvim_set_current_buf(buffers[next_idx])
+    end
+end
+
 M.open_history = function ()
     local has_telescope, telescope = pcall(require, "telescope")
     if not has_telescope then
@@ -51,32 +66,10 @@ local function set_bar_keymaps(buf)
         M.focus_bar()
     end, { noremap = true, silent = true })
     vim.keymap.set("n", "l", function()
-        local buffers = { M.ui.buf_body, M.ui.buf_header, M.ui.buf_query }
-        if vim.api.nvim_win_is_valid(M.ui.win_data_id) and vim.api.nvim_get_current_win() == M.ui.win_data_id then
-            local current_buf = vim.api.nvim_get_current_buf()
-            local next_idx = 1
-            for i, m in ipairs(buffers) do
-                if m == current_buf then
-                    next_idx = (i % #buffers) + 1
-                    break
-                end
-            end
-            vim.api.nvim_set_current_buf(buffers[next_idx])
-        end
+        M.iter_buffs(M.ui.buf_body, M.ui.buf_header, M.ui.buf_query)
     end, { buffer = buf, silent = true })
-    vim.keymap.set("n", "h", function()
-        local buffers = { M.ui.buf_query, M.ui.buf_header, M.ui.buf_body }
-        if vim.api.nvim_win_is_valid(M.ui.win_data_id) and vim.api.nvim_get_current_win() == M.ui.win_data_id then
-            local current_buf = vim.api.nvim_get_current_buf()
-            local next_idx = 1
-            for i, m in ipairs(buffers) do
-                if m == current_buf then
-                    next_idx = (i % #buffers) + 1
-                    break
-                end
-            end
-            vim.api.nvim_set_current_buf(buffers[next_idx])
-        end
+    vim.keymap.set("n", "h", function ()
+        M.iter_buffs(M.ui.buf_query, M.ui.buf_header, M.ui.buf_body)
     end, { buffer = buf, silent = true})
     vim.keymap.set("n", "q", function()
         if vim.api.nvim_get_current_win() == M.ui.win_ctrl_id or vim.api.nvim_get_current_win() == M.ui.win_data_id then
