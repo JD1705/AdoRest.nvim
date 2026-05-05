@@ -7,6 +7,7 @@ local actions = require "telescope.actions"
 local action_state = require "telescope.actions.state"
 local history = require("adore.history")
 local entry_display = require("telescope.pickers.entry_display")
+-- the displayer is used to give format to the options in telescope
 local displayer = entry_display.create({
 separator = " ",
 items = {
@@ -23,14 +24,18 @@ M.history_s = function (opts)
         prompt_title = "history",
         finder = finders.new_table({
             results = history,
+            -- here we change the raw results
             entry_maker = function (entry)
+                -- the regex used here captures the text, starting with the timestamp ([%d+:%d+:%d+%]) and finishing with the status code (%d+)
                 local time, method, url, status= entry.request:match("^(%[%d+:%d+:%d+%])%s+(%S+)%s+(.+)%s+(%d+)$")
+                -- from here on, the data is formatted to give it colors like mentioned below
                 local status_hl = "TelescopeResultsVariable"
                 if status:match("^2") then status_hl = "DiagnosticOk"    -- Green for 2xx
                 elseif status:match("^4") then status_hl = "DiagnosticWarn" -- Yellow for 4xx
                 elseif status:match("^5") then status_hl = "DiagnosticError" -- Red for 5xx
                 end
                 local make_display = function(ent)
+                -- here the displayer format the data and give it a highlighting, ex. methods have the highlight of a function
                 return displayer {
                 { time, "Comment" },
                 { method, "Function" },
@@ -46,10 +51,12 @@ M.history_s = function (opts)
             end
         }),
         sorter = conf.generic_sorter(opts),
+        -- the previever is the one that shows the response saved in each request from the history
         previewer = previewers.new_buffer_previewer({
             title = "JSON Response",
             define_preview = function (self, entry, status)
                 vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, entry.value.json_response)
+                -- jq is necessary to format the responses, since theyre JSONs
                 if vim.fn.executable("jq") then
                     vim.api.nvim_buf_call(self.state.bufnr, function()
                         vim.cmd("%!jq .")
@@ -58,11 +65,13 @@ M.history_s = function (opts)
                 vim.api.nvim_set_option_value("filetype", "json", { buf = self.state.bufnr})
             end
         }),
+        -- this block defines what will happen when one result is selected
         attach_mappings = function(prompt_bufnr, map)
           actions.select_default:replace(function()
             actions.close(prompt_bufnr)
             local selection = action_state.get_selected_entry()
-            -- print(vim.inspect(selection))
+            -- print(vim.inspect(selection)) -- this will be used to test the selection, uncomment to use
+            -- the actual action will display a floating window with the same logic as the one when a request is done.
             local res_buf = vim.api.nvim_create_buf(false, true)
             vim.api.nvim_open_win(res_buf, true, { relative = "editor", width = 100, height = 25, style = "minimal", border = "rounded", row = vim.o.lines/5, col = vim.o.columns/4})
             local res_win = vim.api.nvim_get_current_win()

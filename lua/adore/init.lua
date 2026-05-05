@@ -8,8 +8,10 @@ M.set_buffers = require("adore.ui").set_buffers
 M.config = {floating_border = "single", bar_pos = "right", bar_width = 50 }
 M.history = require("adore.history")
 
+-- this open the request/response history. itll only work if telescope is installed, otherwise, a message will be displayed
 M.open_history = function ()
     local has_telescope, telescope = pcall(require, "telescope")
+    -- this validates if telescope is in the system
     if not has_telescope then
         vim.notify("AdoRest: Telescope is not installed", vim.log.levels.ERROR)
         return
@@ -17,14 +19,17 @@ M.open_history = function ()
     require("adore.picker").history_s()
 end
 
+-- IMPORTANT!!: this function receive the user options. if doesnt receive anything it will use the default ones
 function M.setup(user_opts)
     M.config = vim.tbl_deep_extend("force", M.config, user_opts or {})
 end
 
--- Function to make requests
+-- this functions runs the principal logic for the requests
 M.execute_request = function(method, url, body, headers, queries)
     print("AdoRest: Launching " .. method .. " to " .. url .. "...")
+    -- cmd is the table with the data that will be send with httpie
     local cmd = { "http", "--ignore-stdin", "-v", method, url }
+    -- these conditionals validate whether there is something on the body, header and query, if not they wont be append
     if body ~= "" then
         cmd = { "http", "--ignore-stdin", "-v", "--raw", body, method, url }
     end
@@ -38,8 +43,10 @@ M.execute_request = function(method, url, body, headers, queries)
             table.insert(cmd, q)
         end
     end
+    -- this will proceed to send the data in cmd
     vim.fn.jobstart(cmd, {
         stdout_buffered = true,
+        -- stdout refers to the result or response, the json is at the end of the response
         on_stdout = function(_, data)
             local clean_data = {}
             if data then
@@ -55,7 +62,9 @@ M.execute_request = function(method, url, body, headers, queries)
                 return
             end
 
+            -- vim.schedule is used to keep neovim running while wait for the response (or else it will freeze)
             vim.schedule(function()
+                -- from here the response window is assembled
                 local res_buf = vim.api.nvim_create_buf(false, true)
                 vim.api.nvim_open_win(res_buf, true, { relative = "editor", width = 100, height = 25, style = "minimal", border = M.config.floating_border, row = vim.o.lines/5, col = vim.o.columns/4})
                 local res_win = vim.api.nvim_get_current_win()
@@ -64,6 +73,7 @@ M.execute_request = function(method, url, body, headers, queries)
                 table.insert(json, clean_data[#clean_data])
                 vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, json)
 
+                -- jq is used to format the json response and give indentation
                 if vim.fn.executable("jq") == 1 and #clean_data > 0 then
                     vim.api.nvim_buf_call(res_buf, function()
                         vim.cmd("%!jq .")
@@ -84,6 +94,7 @@ M.execute_request = function(method, url, body, headers, queries)
                         elseif string.sub(Status_code,1,1) == "5" then
                             print("AdoRest: A Server-side error ocurred with Code " .. Status_code)
                         end
+                    -- here the data is saved and stored in the history
                     local lines = vim.api.nvim_buf_get_lines(M.ui.buf_url, 0, -1, false)
                     local request_data = M.get_data(lines)
                     local timestamp = os.date("%H:%M:%S")
@@ -102,6 +113,7 @@ M.execute_request = function(method, url, body, headers, queries)
     })
 end
 
+-- this function extract the data from each buffer and then return it ready to be used
 M.get_data = function (lines)
     local url = lines[2]:gsub("%s+", "")
     local method = lines[4]:match("Method: (%a+)")
@@ -126,11 +138,13 @@ M.get_data = function (lines)
     return { url = url, method = method, body = body_str, header = headers_table, query = query_table}
 end
 
+-- handle_enter manage the logic to send the request when enter is pressed over the SEND button (in the adorest bar). also, manages the cycle of methods
 local function handle_enter()
     local bufnr = vim.api.nvim_get_current_buf()
     local curr_line = vim.api.nvim_win_get_cursor(0)[1]
     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
+    -- this block verifies if the cursor is over the line 4 (where the method buttons is) and cycle between methods
     if curr_line == 4 then
         local methods = { "GET", "POST", "PUT", "DELETE" }
         local current_method = lines[4]:match("Method: (%a+)")
@@ -143,6 +157,7 @@ local function handle_enter()
         end
         vim.api.nvim_buf_set_lines(bufnr, 3, 4, false, { "[  Method: " .. methods[next_idx] .. "  ]" })
 
+    -- this block verifies if the cursor is over the SEND button, if it is, then it will send the request (this can also be done with :AdoRestRequest)
     elseif curr_line == 5 then
         local request = M.get_data(lines)
         if request.url == "" then
@@ -155,6 +170,7 @@ local function handle_enter()
     end
 end
 
+-- set the buffers and windows for the bar
 M.open_bar = function()
     M.ui.last_win = vim.api.nvim_get_current_win()
     if M.ui.win_ctrl_id and vim.api.nvim_win_is_valid(M.ui.win_ctrl_id) then
@@ -193,6 +209,7 @@ M.open_bar = function()
     vim.api.nvim_set_current_win(M.ui.win_ctrl_id)
 end
 
+-- IMPORTANT DONT DELETE!!! if deleted this will break the entire plugin (kidding)
 M.world_domination = function()
     print("AdoRest: World Adomination!")
 end
