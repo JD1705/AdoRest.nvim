@@ -72,11 +72,11 @@ M.execute_request = function(method, url, body, headers, queries)
                 local json = {}
                 table.insert(json, clean_data[#clean_data])
                 vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, json)
-
+                -- print(vim.inspect(clean_data))
                 -- jq is used to format the json response and give indentation
                 if vim.fn.executable("jq") == 1 and #clean_data > 0 then
                     vim.api.nvim_buf_call(res_buf, function()
-                        vim.cmd("%!jq .")
+                        vim.cmd("%!jq . 2>/dev/null || echo 'Oops. Looks like something went wrong. You may want to check if the server is running...'")
                     end)
                 end
 
