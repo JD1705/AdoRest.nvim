@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## unreleased
 
+## [2.1.2] - 2026-05-07
+
+### Changed
+- Internal refactorization of the UI components to improve the maintainability
+### Fixed
+- Fixed error message when there was no server running or when there was a Internal Server Error (code `500`), now displaying more descriptive message
 ## [2.1.1] - 2026-05-03
 
 ### Changed
@@ -48,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - UI table in M to manage windows id and buffers
-- movement between windows using <Tab>
+- movement between windows using `Tab`
 - implement function to set each data buffer for body, header and query in data section window
 - keymaps for buffer movement in data section using `l` and `h`
 - set filetypes for each buffer to have correct highlighting instead of plain text
