@@ -8,6 +8,7 @@ M.set_buffers = require("adore.ui").set_buffers
 M.config = {floating_border = "single", bar_pos = "right", bar_width = 50 }
 M.history = require("adore.history")
 
+
 -- this open the request/response history. itll only work if telescope is installed, otherwise, a message will be displayed
 M.open_history = function ()
     local has_telescope, telescope = pcall(require, "telescope")
@@ -189,14 +190,16 @@ M.open_bar = function()
     vim.wo.winfixwidth = true
     M.ui.win_ctrl_id = vim.api.nvim_get_current_win()
 
-    M.ui.buf_url = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_lines(M.ui.buf_url, 0, -1, false, {
-        "  --- AdoRest ---  ",
-        "http://127.0.0.1:8000/",
-        "",
-        "[  Method: GET  ]",
-        "[  SEND  ]"
-    })
+    if M.ui.buf_url == nil then
+        M.ui.buf_url = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(M.ui.buf_url, 0, -1, false, {
+            "  --- AdoRest ---  ",
+            "http://127.0.0.1:8000/",
+            "",
+            "[  Method: GET  ]",
+            "[  SEND  ]"
+        })
+    end
     M.set_buffers()
     vim.api.nvim_set_option_value('filetype', 'json', { buf = M.ui.buf_body })
     vim.api.nvim_set_option_value('filetype', 'vim', { buf = M.ui.buf_header })

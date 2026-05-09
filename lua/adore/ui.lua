@@ -86,16 +86,17 @@ end
 -- create the buffers for the data window and define the buffers content
 M.set_buffers = function()
     vim.cmd("belowright split")
-    M.ui.buf_body = vim.api.nvim_create_buf(false, true)
     M.ui.win_data_id = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(M.ui.win_data_id, M.ui.buf_body)
     M.set_bar_keymaps(M.ui.buf_body)
-    vim.api.nvim_buf_set_lines(M.ui.buf_body, 0, -1, false, {
-        "[ BODY ]",
-        ""
-    })
+    if M.ui.buf_body == nil then
+        M.ui.buf_body = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(M.ui.buf_body, 0, -1, false, {
+            "[ BODY ]",
+            ""
+        })
+    end
+    vim.api.nvim_win_set_buf(M.ui.win_data_id, M.ui.buf_body)
     local vt_ns = vim.api.nvim_create_namespace("adore_namespace")
-    M.ui.buf_header = vim.api.nvim_create_buf(false, true)
     -- this set and use virtual text (extmark) as a guide for the user
     vim.api.nvim_buf_set_extmark(M.ui.buf_body, vt_ns, 1, 0, { virt_lines = {{{ "{" , "Comment" }}, {{ "  'key': 'value'", "Comment" }}, {{ "}", "Comment" }} }, virt_text_pos = "inline", hl_mode = "combine"})
     -- this autocmd is used to clean the virtual text once the user starts to type so it doesnt get in the middle
@@ -105,11 +106,14 @@ M.set_buffers = function()
             vim.api.nvim_buf_clear_namespace(M.ui.buf_body, vt_ns, 0, -1)
         end
     })
+    if M.ui.buf_header == nil then
+        M.ui.buf_header = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(M.ui.buf_header, 0, -1, false, {
+            "[ HEADER ]",
+            ""
+        })
+    end
     M.set_bar_keymaps(M.ui.buf_header)
-    vim.api.nvim_buf_set_lines(M.ui.buf_header, 0, -1, false, {
-        "[ HEADER ]",
-        ""
-    })
     vim.api.nvim_buf_set_extmark(M.ui.buf_header, vt_ns, 1, 0, { virt_text = {{ "name: value", "Comment"}}, virt_text_pos = "inline", hl_mode = "combine"})
     vim.api.nvim_create_autocmd("InsertEnter", {
         buffer = M.ui.buf_header,
@@ -117,12 +121,14 @@ M.set_buffers = function()
             vim.api.nvim_buf_clear_namespace(M.ui.buf_header, vt_ns, 0, -1)
         end
     })
-    M.ui.buf_query = vim.api.nvim_create_buf(false, true)
+    if M.ui.buf_query == nil then
+        M.ui.buf_query = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(M.ui.buf_query, 0, -1, false, {
+            "[ QUERY ]",
+            ""
+        })
+    end
     M.set_bar_keymaps(M.ui.buf_query)
-    vim.api.nvim_buf_set_lines(M.ui.buf_query, 0, -1, false, {
-        "[ QUERY ]",
-        ""
-    })
     vim.api.nvim_buf_set_extmark(M.ui.buf_query, vt_ns, 1, 0, { virt_text = {{ "name: value", "Comment"}}, virt_text_pos = "inline", hl_mode = "combine"})
     vim.api.nvim_create_autocmd("InsertEnter", {
         buffer = M.ui.buf_query,
