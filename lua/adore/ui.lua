@@ -6,7 +6,7 @@ M.ui = { win_ctrl_id = nil, win_data_id = nil, buf_url = nil, buf_body = nil, bu
 -- necessary to cycle through buffers. can receive multiple parameters
 M.iter_buffs = function (...)
     local buffers = {...}
-    if vim.api.nvim_win_is_valid(M.ui.win_data_id) and vim.api.nvim_get_current_win() == M.ui.win_data_id then
+    if M.ui.win_data_id ~= nil and vim.api.nvim_get_current_win() == M.ui.win_data_id then
         local current_buf = vim.api.nvim_get_current_buf()
         local next_idx = 1
         for i, m in ipairs(buffers) do
@@ -87,7 +87,6 @@ end
 M.set_buffers = function()
     vim.cmd("belowright split")
     M.ui.win_data_id = vim.api.nvim_get_current_win()
-    M.set_bar_keymaps(M.ui.buf_body)
     if M.ui.buf_body == nil then
         M.ui.buf_body = vim.api.nvim_create_buf(false, true)
         vim.api.nvim_buf_set_lines(M.ui.buf_body, 0, -1, false, {
@@ -95,6 +94,7 @@ M.set_buffers = function()
             ""
         })
     end
+    M.set_bar_keymaps(M.ui.buf_body)
     vim.api.nvim_win_set_buf(M.ui.win_data_id, M.ui.buf_body)
     local vt_ns = vim.api.nvim_create_namespace("adore_namespace")
     -- this set and use virtual text (extmark) as a guide for the user
