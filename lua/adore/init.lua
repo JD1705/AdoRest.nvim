@@ -5,7 +5,7 @@ M.focus_bar = require("adore.ui").focus_bar
 M.unfocus_bar = require("adore.ui").unfocus_bar
 M.set_bar_keymaps = require("adore.ui").set_bar_keymaps
 M.set_buffers = require("adore.ui").set_buffers
-M.config = {floating_border = "single", bar_pos = "right", bar_width = 50 }
+M.config = {floating_border = "single", bar_pos = "right", bar_width = 50, collections_path = "tests/request" }
 M.history = require("adore.history")
 
 
