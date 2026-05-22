@@ -67,22 +67,73 @@ M.execute_request = function(method, url, body, headers, queries)
             vim.schedule(function()
                 -- from here the response window is assembled
                 local res_buf = vim.api.nvim_create_buf(false, true)
-                vim.api.nvim_open_win(res_buf, true, { relative = "editor", width = 100, height = 25, style = "minimal", border = M.config.floating_border, row = vim.o.lines/5, col = vim.o.columns/4})
+                local json_buf = vim.api.nvim_create_buf(false, true)
+                vim.api.nvim_open_win(json_buf, true, { relative = "editor", width = 100, height = 15, style = "minimal", border = M.config.floating_border, row = 6, col = 47 })
                 local res_win = vim.api.nvim_get_current_win()
+                vim.api.nvim_open_win(res_buf, true, { relative = "editor", width = 100, height = 15, style = "minimal", border = M.config.floating_border, row = 23, col = 47 })
+                local json_win = vim.api.nvim_get_current_win()
+                vim.api.nvim_win_set_buf(json_win, json_buf)
                 vim.api.nvim_win_set_buf(res_win, res_buf)
                 local json = {}
+                local heads = table.move(clean_data, 1, #clean_data -1, 1, {})
                 table.insert(json, clean_data[#clean_data])
-                vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, json)
+                vim.api.nvim_buf_set_lines(json_buf, 0, -1, false, json)
+                vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, heads)
                 -- print(vim.inspect(clean_data))
+
                 -- jq is used to format the json response and give indentation
                 if vim.fn.executable("jq") == 1 and #clean_data > 0 then
-                    vim.api.nvim_buf_call(res_buf, function()
+                    vim.api.nvim_buf_call(json_buf, function()
                         vim.cmd("%!jq . 2>/dev/null || echo 'Oops. Looks like something went wrong. You may want to check if the server is running...'")
                     end)
                 end
 
-                vim.api.nvim_set_option_value('filetype', 'json', { buf = res_buf })
-                vim.keymap.set('n', 'q', ':close<CR>', { buffer = res_buf, silent = true })
+                vim.api.nvim_set_option_value("filetype", "http", { buf = res_buf})
+                vim.api.nvim_set_option_value('filetype', 'json', { buf = json_buf })
+                vim.keymap.set('n', 'q', function ()
+                    vim.api.nvim_win_close(res_win,true)
+                    vim.api.nvim_win_close(json_win, true)
+                end, { buffer = json_buf, silent = true })
+                vim.keymap.set('n', 'q', function ()
+                    vim.api.nvim_win_close(res_win,true)
+                    vim.api.nvim_win_close(json_win, true)
+                end, { buffer = res_buf, silent = true })
+
+                -- buffer cycling for the response windows
+                vim.keymap.set("n", "<Tab>", function ()
+                    if vim.api.nvim_get_current_win() == res_win or vim.api.nvim_get_current_win() == json_win then
+                        local windows = { res_win, json_win }
+                        if vim.api.nvim_win_is_valid(res_win) and vim.api.nvim_win_is_valid(json_win) then
+                            local current_window = vim.api.nvim_get_current_win()
+                            local next_idx = 1
+                            for i, m in ipairs(windows) do
+                                if m == current_window then
+                                    next_idx = (i % #windows) + 1
+                                    break
+                                end
+                            end
+                            vim.api.nvim_set_current_win(windows[next_idx])
+                        end
+                    end
+                end, { buffer = json_buf })
+                vim.keymap.set("n", "<Tab>", function ()
+                    if vim.api.nvim_get_current_win() == res_win or vim.api.nvim_get_current_win() == json_win then
+                        local windows = { res_win, json_win }
+                        if vim.api.nvim_win_is_valid(res_win) and vim.api.nvim_win_is_valid(json_win) then
+                            local current_window = vim.api.nvim_get_current_win()
+                            local next_idx = 1
+                            for i, m in ipairs(windows) do
+                                if m == current_window then
+                                    next_idx = (i % #windows) + 1
+                                    break
+                                end
+                            end
+                            vim.api.nvim_set_current_win(windows[next_idx])
+                        end
+                    end
+                end, { buffer = res_buf })
+
+                -- extraction of the status code to be displayed through a message
                 for _, line in ipairs(clean_data) do
                     Status_code = line:match("HTTP/%d.%d%s(%d+)")
                     if Status_code ~= nil then
