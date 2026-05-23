@@ -28,3 +28,7 @@ end, { desc = "Send a request if the bar is open"})
 vim.api.nvim_create_user_command("AdoRestHistory", function ()
     require("adore").open_history()
 end, { desc = "A request/response history" })
+
+vim.api.nvim_create_user_command("AdoRestCollections", function ()
+    require("adore").collection_search()
+end, { desc = "Send requests using a collection"})
