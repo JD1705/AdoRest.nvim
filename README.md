@@ -1,10 +1,10 @@
 # AdoRest.nvim 🎤
 ### Request Workflow
-![request](assets/request.webm)
+![request](request.webm)
 ### Open AdoRest bar
-![open_close](assets/open_close.webm)
+![open_close](open_close.webm)
 ### Focus and Unfocus
-![focus_unfocus](assets/focus_unfocus.webm)
+![focus_unfocus](focus_unfocus.webm)
 A lightweight, asynchronous HTTP client for Neovim inspired by Thunder Client. 
 Written in Lua, powered by **httpie**.
 ## ✨ Features
@@ -12,6 +12,8 @@ Written in Lua, powered by **httpie**.
 * **Asynchronous**: Doesn't block your Neovim UI. Your editor stays responsive while waiting for the server.
 * **Auto-Formatting**: Automatic JSON syntax highlighting for responses.
 * **Integrated**: Designed to work alongside `nvim-tree` and other sidebars without layout breaking.
+* **Full Requests History**: Navigate through your recently sent requests and responses.
+* **Requests with Collections**: Send saved requests using `.http`files.
 ## 📋 Prerequisites
 You need to have `httpie` installed in your system:
 ```bash
@@ -21,7 +23,7 @@ sudo apt install httpie
 # Arch Linux
 sudo pacman -S httpie
 ```
-`jq` is also required for JSON formating:
+`jq` is also required for JSON formatting:
 ```bash
 # Ubuntu/Debian
 sudo apt install jq
@@ -34,7 +36,7 @@ Using lazy.nvim:
 ```Lua
 return {
   "JD1705/AdoRest.nvim",
-  -- dependecies = { "nvim-telescope/telescope.nvim" } only needed if you want to use the history
+  -- dependencies = { "nvim-telescope/telescope.nvim" } -- only needed if you want to use the history and collections
 }
 ```
 ## Configuration
@@ -46,22 +48,33 @@ require("adore").setup({
     floating_border = "rounded", -- default is "single"
     -- bar_width: AdoRest bar width
     bar_width = 30, -- default is 50
+    -- collections_path: the place where you save the collections
+    collections_path = "collections/" -- default is "tests/request"
 })
 ```
 ### Setup Parameters
-| Parameter       | Type    | Valid Options |
-| --------------- | ------- | ------------- |
-| bar_pos         | string  | "left"        |
-|                 |         | "right"       |
-| floating_border | string  | "rounded"     |
-|                 |         | "single"      |
-|                 |         | "none"        |
-|                 |         | "double"      |
-|                 |         | "solid"       |
-| bar_width       | integer | 50            |
-## Request History with Telescope
-![adorest_history_window](assets/adorest_history_window.png)
-Using the command `:AdoRestHistory` you can see a history of requests with their respective responses. To do this is necessary to have `telescope.nvim` installed
+| Parameter        | Type    | Valid Options   |
+| ---------------- | ------- | --------------- |
+| bar_pos          | string  | "left"          |
+|                  |         | "right"         |
+| floating_border  | string  | "rounded"       |
+|                  |         | "single"        |
+|                  |         | "none"          |
+|                  |         | "double"        |
+|                  |         | "solid"         |
+| bar_width        | integer | 50              |
+| collections_path | string  | any string path |
+## Telescope Integration
+For advanced features such as Request History and Collections, `telescope.nvim` is required. These features are optional, and `AdoRest.nvim` remains fully functional without them.
+### Request History
+![adorest_history_window](adorest_history_window.png)
+Using the `AdoRestHistory` command you can display a list of the recently sent request, showing the Timestamp, Method, URL and Status code. If you select one, it will open a floating window with the response received from that request (actually only displays the JSON).
+### Request Collections
+![adorest_collections_window_01](adorest_collections_window_01.png)
+If you have saved request collections somewhere in your project, you can access to them using the command `AdoRestCollections`, this will display the window showed in the picture where you can select the respective file to use.
+![adorest_collections_window_02](adorest_collections_window_02.png)
+After selecting the file, this will extract each request from it (looking for the lines with a Method and URL) so you can select which one to send as a request.
+You can define the path where you save your collections through [[#Configuration]].
 ## Keymaps
 - `<Tab>` to switch between the control section (url and buttons) and the data section (body, header & query)
 - `h` and `l` to move between buffers in the data section
@@ -73,6 +86,7 @@ Using the command `:AdoRestHistory` you can see a history of requests with their
 - `:AdoRestUnfocus` set the cursor on the editor window
 - `:AdoRestRequest` send the request (only if the AdoRest bar is open)
 - `:AdoRestHistory` open a telescope window with the history of request/responses
+- `:AdoRestCollections` open a telescope window with the collections (if you have any)
 ## 🛠 Usage
 1. Open the sidebar with `:AdoRest` or with
 2. Modify the URL in the second line
@@ -80,6 +94,7 @@ Using the command `:AdoRestHistory` you can see a history of requests with their
 4. Move the cursor to the send line 
 5. Press `Enter` to execute the request.
 6. The response will appear in a floating window
+![response_window](response_windows.png)
 ## Support
 if you find this plugin useful and want to support my work, feel free to buy me a coffee!
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jd1705)
