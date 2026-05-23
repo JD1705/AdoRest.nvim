@@ -1,4 +1,5 @@
 local M = {}
+local path = require("adore.init").config.collections_path
 local pickers = require("telescope.pickers")
 local previewers = require("telescope.previewers")
 local finders = require("telescope.finders")
@@ -7,6 +8,7 @@ local actions = require "telescope.actions"
 local action_state = require "telescope.actions.state"
 local history = require("adore.history")
 local entry_display = require("telescope.pickers.entry_display")
+local util = require("lspconfig.util")
 -- the displayer is used to give format to the options in telescope
 local displayer = entry_display.create({
 separator = " ",
@@ -91,4 +93,99 @@ M.history_s = function (opts)
     }):find()
 end
 
+M.apply_constants = function (text, constants)
+    if not text then return "" end
+    return text:gsub("{{(.-)}}", function(var)
+        return constants[var:match("^%s*(.-)%s*$")] or "{{" .. var .. "}}"
+    end)
+end
+
+M.extract_constant = function (file)
+    local constants = {}
+    
+    for line in io.lines(file) do
+        if line:sub(1, 1) == "@" then
+            local key, value = line:match("^@%s*(.-)%s*=%s*(.-)$")
+            constants[key] = value
+        end
+    end
+    return constants
+end
+
+M.extract_data = function (pattern, file)
+    local data = { method = "", url = "", headers = {}, body = ""}
+
+    local constants = M.extract_constant(file)
+    local state = "Waiting"
+    for line in io.lines(file) do
+        if state == "Waiting" then
+            if line == pattern then
+                local method, url = line:match("^([A-Z]+)%s+(.+)$")
+                data.method = method
+                data.url = M.apply_constants(url, constants)
+                state = "Headers"
+            end
+        elseif state == "Headers" then
+            if line == "" then
+                state = "Body"
+            else
+                local key, value = line:match("^([^:]+):%s*(.+)$")
+                value = M.apply_constants(value, constants)
+                table.insert(data.headers, key .. ":" .. value)
+            end
+        elseif state == "Body" then
+            if line:sub(1, 3) == "###" then
+                break
+            else
+                data.body = data.body .. line
+            end
+        end
+    end
+    return data
+end
+
+M.http_picker = function (file)
+    local lines = {}
+    
+    local re = vim.regex([[\v^(GET|POST|PUT|PATCH|DELETE)]])
+    for line in io.lines(file) do
+        local match = re:match_str(line)
+        if match then
+            table.insert(lines, line)
+        end
+    end
+    pickers.new({}, {
+        prompt_title = "collections",
+        finder = finders.new_table({
+            results = lines
+        }),
+        sorter = conf.generic_sorter({}),
+        attach_mappings = function (prompt_bufnr, map)
+            actions.select_default:replace(function ()
+                actions.close(prompt_bufnr)
+                local selection = action_state.get_selected_entry()
+                local data = M.extract_data(selection[1], file)
+                print(vim.inspect(data))
+                require("adore.init").execute_request(data.method, data.url, data.body, data.headers)
+            end)
+            return true
+        end
+    }):find()
+end
+
+M.collection_search = function (opts)
+    opts = opts or {}
+    require("telescope.builtin").find_files({
+        cwd = path,
+        attach_mappings = function (prompt_bufnr, map)
+            actions.select_default:replace(function ()
+                local selection = action_state.get_selected_entry()
+                actions.close(prompt_bufnr)
+
+                M.http_picker(path .. "/" .. selection[1])
+            end)
+            return true
+        end
+    })
+end
 return M
