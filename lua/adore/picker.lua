@@ -165,7 +165,7 @@ M.http_picker = function (file)
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
                 local data = M.extract_data(selection[1], file)
-                print(vim.inspect(data))
+                -- print(vim.inspect(data))
                 require("adore.init").execute_request(data.method, data.url, data.body, data.headers)
             end)
             return true
