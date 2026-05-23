@@ -77,7 +77,7 @@ Using the `AdoRestHistory` command you can display a list of the recently sent r
 If you have saved request collections somewhere in your project, you can access to them using the command `AdoRestCollections`, this will display the window showed in the picture where you can select the respective file to use.
 ![adorest_collections_window_02](assets/adorest_collections_window_02.png)
 After selecting the file, this will extract each request from it (looking for the lines with a Method and URL) so you can select which one to send as a request.
-You can define the path where you save your collections through [[#Configuration]].
+You can define the path where you save your collections through [Configuration](#Configuration).
 ## Keymaps
 - `<Tab>` to switch between the control section (url and buttons) and the data section (body, header & query)
 - `h` and `l` to move between buffers in the data section
