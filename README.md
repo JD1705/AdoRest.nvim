@@ -70,12 +70,12 @@ require("adore").setup({
 ## Telescope Integration
 For advanced features such as Request History and Collections, `telescope.nvim` is required. These features are optional, and `AdoRest.nvim` remains fully functional without them.
 ### Request History
-![adorest_history_window](adorest_history_window.png)
+![adorest_history_window](assets/adorest_history_window.png)
 Using the `AdoRestHistory` command you can display a list of the recently sent request, showing the Timestamp, Method, URL and Status code. If you select one, it will open a floating window with the response received from that request (actually only displays the JSON).
 ### Request Collections
-![adorest_collections_window_01](adorest_collections_window_01.png)
+![adorest_collections_window_01](assets/adorest_collections_window_01.png)
 If you have saved request collections somewhere in your project, you can access to them using the command `AdoRestCollections`, this will display the window showed in the picture where you can select the respective file to use.
-![adorest_collections_window_02](adorest_collections_window_02.png)
+![adorest_collections_window_02](assets/adorest_collections_window_02.png)
 After selecting the file, this will extract each request from it (looking for the lines with a Method and URL) so you can select which one to send as a request.
 You can define the path where you save your collections through [[#Configuration]].
 ## Keymaps
@@ -97,7 +97,7 @@ You can define the path where you save your collections through [[#Configuration
 4. Move the cursor to the send line 
 5. Press `Enter` to execute the request.
 6. The response will appear in a floating window
-![response_window](response_windows.png)
+![response_window](assets/response_windows.png)
 ## Support
 if you find this plugin useful and want to support my work, feel free to buy me a coffee!
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jd1705)
