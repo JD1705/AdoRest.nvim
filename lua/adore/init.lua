@@ -20,6 +20,16 @@ M.open_history = function ()
     require("adore.picker").history_s()
 end
 
+M.collection_search = function ()
+    local has_telescope, telescope = pcall(require, "telescope")
+    -- this validates if telescope is in the system
+    if not has_telescope then
+        vim.notify("AdoRest: Telescope is not installed", vim.log.levels.ERROR)
+        return
+    end
+    require("adore.picker").collection_search()
+end
+
 -- IMPORTANT!!: this function receive the user options. if doesnt receive anything it will use the default ones
 function M.setup(user_opts)
     M.config = vim.tbl_deep_extend("force", M.config, user_opts or {})
@@ -34,12 +44,12 @@ M.execute_request = function(method, url, body, headers, queries)
     if body ~= "" then
         cmd = { "http", "--ignore-stdin", "-v", "--raw", body, method, url }
     end
-    if headers ~= "" then
+    if headers ~= nil then
         for _, h in ipairs(headers) do
             table.insert(cmd, h)
         end
     end
-    if queries ~= "" then
+    if queries ~= nil then
         for _, q in ipairs(queries) do
             table.insert(cmd, q)
         end
