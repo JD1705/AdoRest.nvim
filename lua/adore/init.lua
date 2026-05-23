@@ -5,8 +5,9 @@ M.focus_bar = require("adore.ui").focus_bar
 M.unfocus_bar = require("adore.ui").unfocus_bar
 M.set_bar_keymaps = require("adore.ui").set_bar_keymaps
 M.set_buffers = require("adore.ui").set_buffers
-M.config = {floating_border = "single", bar_pos = "right", bar_width = 50 }
+M.config = {floating_border = "single", bar_pos = "right", bar_width = 50, collections_path = "tests/request" }
 M.history = require("adore.history")
+
 
 -- this open the request/response history. itll only work if telescope is installed, otherwise, a message will be displayed
 M.open_history = function ()
@@ -17,6 +18,16 @@ M.open_history = function ()
         return
     end
     require("adore.picker").history_s()
+end
+
+M.collection_search = function ()
+    local has_telescope, telescope = pcall(require, "telescope")
+    -- this validates if telescope is in the system
+    if not has_telescope then
+        vim.notify("AdoRest: Telescope is not installed", vim.log.levels.ERROR)
+        return
+    end
+    require("adore.picker").collection_search()
 end
 
 -- IMPORTANT!!: this function receive the user options. if doesnt receive anything it will use the default ones
@@ -33,12 +44,12 @@ M.execute_request = function(method, url, body, headers, queries)
     if body ~= "" then
         cmd = { "http", "--ignore-stdin", "-v", "--raw", body, method, url }
     end
-    if headers ~= "" then
+    if headers ~= nil then
         for _, h in ipairs(headers) do
             table.insert(cmd, h)
         end
     end
-    if queries ~= "" then
+    if queries ~= nil then
         for _, q in ipairs(queries) do
             table.insert(cmd, q)
         end
@@ -66,22 +77,73 @@ M.execute_request = function(method, url, body, headers, queries)
             vim.schedule(function()
                 -- from here the response window is assembled
                 local res_buf = vim.api.nvim_create_buf(false, true)
-                vim.api.nvim_open_win(res_buf, true, { relative = "editor", width = 100, height = 25, style = "minimal", border = M.config.floating_border, row = vim.o.lines/5, col = vim.o.columns/4})
+                local json_buf = vim.api.nvim_create_buf(false, true)
+                vim.api.nvim_open_win(json_buf, true, { relative = "editor", width = 100, height = 15, style = "minimal", border = M.config.floating_border, row = 6, col = 47 })
                 local res_win = vim.api.nvim_get_current_win()
+                vim.api.nvim_open_win(res_buf, true, { relative = "editor", width = 100, height = 15, style = "minimal", border = M.config.floating_border, row = 23, col = 47 })
+                local json_win = vim.api.nvim_get_current_win()
+                vim.api.nvim_win_set_buf(json_win, json_buf)
                 vim.api.nvim_win_set_buf(res_win, res_buf)
                 local json = {}
+                local heads = table.move(clean_data, 1, #clean_data -1, 1, {})
                 table.insert(json, clean_data[#clean_data])
-                vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, json)
+                vim.api.nvim_buf_set_lines(json_buf, 0, -1, false, json)
+                vim.api.nvim_buf_set_lines(res_buf, 0, -1, false, heads)
                 -- print(vim.inspect(clean_data))
+
                 -- jq is used to format the json response and give indentation
                 if vim.fn.executable("jq") == 1 and #clean_data > 0 then
-                    vim.api.nvim_buf_call(res_buf, function()
+                    vim.api.nvim_buf_call(json_buf, function()
                         vim.cmd("%!jq . 2>/dev/null || echo 'Oops. Looks like something went wrong. You may want to check if the server is running...'")
                     end)
                 end
 
-                vim.api.nvim_set_option_value('filetype', 'json', { buf = res_buf })
-                vim.keymap.set('n', 'q', ':close<CR>', { buffer = res_buf, silent = true })
+                vim.api.nvim_set_option_value("filetype", "http", { buf = res_buf})
+                vim.api.nvim_set_option_value('filetype', 'json', { buf = json_buf })
+                vim.keymap.set('n', 'q', function ()
+                    vim.api.nvim_win_close(res_win,true)
+                    vim.api.nvim_win_close(json_win, true)
+                end, { buffer = json_buf, silent = true })
+                vim.keymap.set('n', 'q', function ()
+                    vim.api.nvim_win_close(res_win,true)
+                    vim.api.nvim_win_close(json_win, true)
+                end, { buffer = res_buf, silent = true })
+
+                -- buffer cycling for the response windows
+                vim.keymap.set("n", "<Tab>", function ()
+                    if vim.api.nvim_get_current_win() == res_win or vim.api.nvim_get_current_win() == json_win then
+                        local windows = { res_win, json_win }
+                        if vim.api.nvim_win_is_valid(res_win) and vim.api.nvim_win_is_valid(json_win) then
+                            local current_window = vim.api.nvim_get_current_win()
+                            local next_idx = 1
+                            for i, m in ipairs(windows) do
+                                if m == current_window then
+                                    next_idx = (i % #windows) + 1
+                                    break
+                                end
+                            end
+                            vim.api.nvim_set_current_win(windows[next_idx])
+                        end
+                    end
+                end, { buffer = json_buf })
+                vim.keymap.set("n", "<Tab>", function ()
+                    if vim.api.nvim_get_current_win() == res_win or vim.api.nvim_get_current_win() == json_win then
+                        local windows = { res_win, json_win }
+                        if vim.api.nvim_win_is_valid(res_win) and vim.api.nvim_win_is_valid(json_win) then
+                            local current_window = vim.api.nvim_get_current_win()
+                            local next_idx = 1
+                            for i, m in ipairs(windows) do
+                                if m == current_window then
+                                    next_idx = (i % #windows) + 1
+                                    break
+                                end
+                            end
+                            vim.api.nvim_set_current_win(windows[next_idx])
+                        end
+                    end
+                end, { buffer = res_buf })
+
+                -- extraction of the status code to be displayed through a message
                 for _, line in ipairs(clean_data) do
                     Status_code = line:match("HTTP/%d.%d%s(%d+)")
                     if Status_code ~= nil then
@@ -189,14 +251,16 @@ M.open_bar = function()
     vim.wo.winfixwidth = true
     M.ui.win_ctrl_id = vim.api.nvim_get_current_win()
 
-    M.ui.buf_url = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_lines(M.ui.buf_url, 0, -1, false, {
-        "  --- AdoRest ---  ",
-        "http://127.0.0.1:8000/",
-        "",
-        "[  Method: GET  ]",
-        "[  SEND  ]"
-    })
+    if M.ui.buf_url == nil then
+        M.ui.buf_url = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(M.ui.buf_url, 0, -1, false, {
+            "  --- AdoRest ---  ",
+            "http://127.0.0.1:8000/",
+            "",
+            "[  Method: GET  ]",
+            "[  SEND  ]"
+        })
+    end
     M.set_buffers()
     vim.api.nvim_set_option_value('filetype', 'json', { buf = M.ui.buf_body })
     vim.api.nvim_set_option_value('filetype', 'vim', { buf = M.ui.buf_header })

@@ -4,8 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## unreleased
+## [2.2.0] - 2026-05-23
+
+### Added
+- Implemented persistent buffers content, saving the changes on the data windows of the AdoRest bar once it is closed and then use these saved buffers when reopened
+- Collections path can be defined by the user on its personal configuration
+- Implemented a collection picker for `.http`files using telescope
+- Created a user command to access the collections on the selected path (default is `tests/requests/`) and send a request using them
+
+### Changed
+- The response now is showed in a dual floating window displaying the response metadata and the JSON response
 
 ## [2.1.2] - 2026-05-07
 
